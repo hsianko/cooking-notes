@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="googlebot" content="noindex, nofollow">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="灶邊筆記">
+<meta name="theme-color" content="#F7F1E4">
+<title>灶邊筆記</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
+
+:root{
+  --bg:#F7F1E4; --card:#FFFCF4; --cardBorder:#E6DCC4;
+  --ink:#3B2F22; --muted:#9C8A6E; --sage:#7C8B5E; --sageDark:#5F6E45;
+  --rust:#C1622C; --rustSoft:#EFDCC9;
+}
+*{box-sizing:border-box;}
+body{
+  margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
+  font-family:'IBM Plex Sans TC', sans-serif; padding-bottom:40px;
+  -webkit-font-smoothing:antialiased;
+}
+input::placeholder, textarea::placeholder{ color:#B9AC91; }
+select{ -webkit-appearance:none; appearance:none; }
+button{ font-family:inherit; }
+
+.header-wrap{
+  padding:24px 20px 0; border-bottom:1px solid var(--cardBorder);
+  background:linear-gradient(180deg,#FBF6EA,#F7F1E4);
+}
+.header-row{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+.logo{
+  width:40px; height:40px; border-radius:12px; background:var(--rustSoft);
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px;
+}
+h1{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; margin:0; letter-spacing:0.01em; }
+.subtitle{ margin:2px 0 0; font-size:12.5px; color:var(--muted); }
+
+.tab-row{ display:flex; gap:6px; }
+.tab-btn{
+  flex:1; padding:11px 10px; font-size:13.5px; font-weight:500;
+  border:none; background:transparent; color:var(--muted); cursor:pointer;
+  border-bottom:2px solid transparent; display:flex; align-items:center; justify-content:center;
+}
+.tab-btn.active{ color:var(--rust); border-bottom:2px solid var(--rust); font-weight:600; }
+.count-badge{
+  margin-left:6px; background:var(--rust); color:#fff; font-size:10.5px; font-weight:600;
+  border-radius:20px; padding:1px 6px; font-family:'IBM Plex Mono',monospace;
+}
+
+.body-wrap{ padding:20px 20px 0; max-width:640px; margin:0 auto; }
+.tabpanel{ display:none; }
+.tabpanel.active{ display:block; }
+
+.add-big-btn{
+  width:100%; padding:13px; border-radius:12px; border:1.5px dashed var(--rust);
+  background:var(--rustSoft); color:var(--rust); font-size:14px; font-weight:600;
+  display:flex; align-items:center; justify-content:center; gap:8px; cursor:pointer;
+  margin-bottom:18px;
+}
+
+.form-card{
+  background:var(--card); border:1px solid var(--cardBorder); border-radius:14px;
+  padding:18px; margin-bottom:20px; box-shadow:0 2px 10px rgba(59,47,34,0.05); display:none;
+}
+.form-card.show{ display:block; }
+.form-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+.form-title{ font-family:'Fraunces',serif; font-weight:600; font-size:16px; }
+.icon-btn{ border:none; background:transparent; cursor:pointer; padding:4px; display:flex; align-items:center; }
+label.field-label{ display:block; font-size:12px; color:var(--muted); margin-bottom:6px; margin-top:12px; font-weight:500; }
+.field{
+  width:100%; padding:10px 12px; border-radius:9px; border:1px solid var(--cardBorder);
+  background:#FFFEFA; font-size:14px; color:var(--ink); font-family:inherit; box-sizing:border-box; outline:none;
+}
+textarea.field{ min-height:56px; resize:vertical; }
+.row2{ display:flex; gap:12px; }
+.save-btn{
+  width:100%; margin-top:18px; padding:12px; border-radius:10px; border:none;
+  background:var(--sage); color:#fff; font-size:14px; font-weight:600; cursor:pointer;
+}
+
+.empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:44px 20px; gap:10px; }
+.empty-text{ color:var(--muted); font-size:13px; margin:0; }
+.empty-icon{ font-size:30px; opacity:0.35; }
+
+.list{ display:flex; flex-direction:column; gap:12px; }
+.recipe-card{
+  background:var(--card); border:1px solid var(--cardBorder); border-radius:14px; padding:16px;
+  box-shadow:0 1px 6px rgba(59,47,34,0.04);
+}
+.recipe-top{ display:flex; justify-content:space-between; align-items:flex-start; }
+.recipe-name{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; }
+.tag-row{ display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+.tag{ font-size:11.5px; padding:3px 9px; border-radius:20px; background:#EFE7D3; color:var(--sageDark); font-weight:500; }
+.tag-time{ background:var(--rustSoft); color:var(--rust); font-family:'IBM Plex Mono',monospace; }
+.notes-row{ display:flex; margin-top:10px; align-items:flex-start; font-size:12.5px; color:#6B5A42; line-height:1.5; }
+.add-to-cart-btn{
+  margin-top:12px; border:none; background:transparent; color:var(--sageDark);
+  font-size:12.5px; font-weight:600; padding:0; cursor:pointer; display:flex; align-items:center;
+}
+
+.shop-input-row{ display:flex; gap:8px; margin-bottom:18px; }
+.add-small-btn{
+  width:42px; border-radius:9px; border:none; background:var(--sage); cursor:pointer;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0; color:#fff; font-size:20px; font-weight:600;
+}
+.shop-row{
+  display:flex; align-items:center; gap:10px; background:var(--card);
+  border:1px solid var(--cardBorder); border-radius:12px; padding:12px 14px;
+}
+.shop-row.checked{ opacity:0.55; }
+.checkbox{
+  width:19px; height:19px; border-radius:6px; border:1.5px solid var(--cardBorder);
+  display:flex; align-items:center; justify-content:center; background:#FFFEFA; cursor:pointer; flex-shrink:0;
+}
+.checkbox.on{ background:var(--sage); border-color:var(--sage); color:#fff; font-size:12px; }
+.shop-item-name{ font-size:14px; font-weight:500; }
+.shop-item-name.checked{ text-decoration:line-through; color:var(--muted); }
+.from-tag{ display:block; font-size:11px; color:var(--muted); margin-top:2px; }
+.clear-btn{
+  width:100%; margin-top:16px; padding:11px; border-radius:10px; border:1px solid var(--cardBorder);
+  background:transparent; color:var(--muted); font-size:13px; cursor:pointer;
+}
+
+.toast{
+  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  background:var(--ink); color:#FBF6EA; padding:10px 18px; border-radius:30px;
+  font-size:12.5px; box-shadow:0 4px 16px rgba(0,0,0,0.2); opacity:0; pointer-events:none; transition:opacity .2s;
+}
+.toast.show{ opacity:1; }
+</style>
+</head>
+<body>
+
+<div class="header-wrap">
+  <div class="header-row">
+    <div class="logo">🍳</div>
+    <div>
+      <h1>灶邊筆記</h1>
+      <p class="subtitle">烹煮方式 · 時間 · 採買清單</p>
+    </div>
+  </div>
+  <div class="tab-row">
+    <button class="tab-btn active" data-tab="recipes">🔥 料理紀錄</button>
+    <button class="tab-btn" data-tab="shopping">🧺 採買清單 <span class="count-badge" id="countBadge" style="display:none;">0</span></button>
+  </div>
+</div>
+
+<div class="body-wrap">
+
+  <!-- 料理紀錄 -->
+  <section class="tabpanel active" id="recipes">
+    <button class="add-big-btn" id="openFormBtn">＋ 新增料理紀錄</button>
+
+    <div class="form-card" id="formCard">
+      <div class="form-head">
+        <span class="form-title">新增料理紀錄</span>
+        <button class="icon-btn" id="closeFormBtn">✕</button>
+      </div>
+      <label class="field-label">料理名稱</label>
+      <input class="field" id="f-name" placeholder="例如：巴沙魚">
+
+      <div class="row2">
+        <div style="flex:1;">
+          <label class="field-label">烹調工具</label>
+          <select class="field" id="f-tool">
+            <option>氣炸鍋</option><option>電鍋</option><option>炒鍋</option>
+            <option>烤箱</option><option>電磁爐</option><option>蒸鍋</option><option>其他</option>
+          </select>
+        </div>
+        <div style="flex:1;">
+          <label class="field-label">模式</label>
+          <input class="field" id="f-mode" placeholder="例如：氣炸模式">
+        </div>
+      </div>
+
+      <label class="field-label">時間</label>
+      <input class="field" id="f-time" placeholder="例如：18-20分鐘">
+
+      <label class="field-label">備註</label>
+      <textarea class="field" id="f-notes" placeholder="例如：中間需翻面"></textarea>
+
+      <label class="field-label">需要的食材（選填，用逗號或換行分隔）</label>
+      <textarea class="field" id="f-ingredients" placeholder="例如：巴沙魚, 檸檬, 黑胡椒"></textarea>
+
+      <button class="save-btn" id="saveBtn">儲存</button>
+    </div>
+
+    <div class="empty" id="recipesEmpty" style="display:none;">
+      <div class="empty-icon">🍳</div>
+      <p class="empty-text">還沒有紀錄，點上面按鈕新增第一道料理</p>
+    </div>
+
+    <div class="list" id="recipeList"></div>
+  </section>
+
+  <!-- 採買清單 -->
+  <section class="tabpanel" id="shopping">
+    <div class="shop-input-row">
+      <input class="field" id="newItemInput" placeholder="新增採買項目" style="flex:1;">
+      <button class="add-small-btn" id="addItemBtn">＋</button>
+    </div>
+
+    <div class="empty" id="shoppingEmpty" style="display:none;">
+      <div class="empty-icon">🧺</div>
+      <p class="empty-text">採買清單是空的</p>
+    </div>
+
+    <div class="list" id="shopList"></div>
+
+    <button class="clear-btn" id="clearBtn" style="display:none;">清除已購買項目</button>
+  </section>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_RECIPES = 'zaobian-recipes';
+const STORAGE_SHOPPING = 'zaobian-shopping';
+
+let recipes = JSON.parse(localStorage.getItem(STORAGE_RECIPES) || '[]');
+let shopping = JSON.parse(localStorage.getItem(STORAGE_SHOPPING) || '[]');
+
+function saveRecipes(){ localStorage.setItem(STORAGE_RECIPES, JSON.stringify(recipes)); }
+function saveShopping(){ localStorage.setItem(STORAGE_SHOPPING, JSON.stringify(shopping)); }
+
+function showToast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(showToast._timer);
+  showToast._timer = setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+// ---- Tabs ----
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---- Recipe form ----
+const formCard = document.getElementById('formCard');
+document.getElementById('openFormBtn').addEventListener('click', ()=> formCard.classList.add('show'));
+document.getElementById('closeFormBtn').addEventListener('click', ()=>{
+  formCard.classList.remove('show');
+  clearForm();
+});
+function clearForm(){
+  document.getElementById('f-name').value='';
+  document.getElementById('f-tool').value='氣炸鍋';
+  document.getElementById('f-mode').value='';
+  document.getElementById('f-time').value='';
+  document.getElementById('f-notes').value='';
+  document.getElementById('f-ingredients').value='';
+}
+document.getElementById('saveBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('f-name').value.trim();
+  if(!name) return;
+  recipes.unshift({
+    id: Date.now().toString(),
+    name,
+    tool: document.getElementById('f-tool').value,
+    mode: document.getElementById('f-mode').value.trim(),
+    time: document.getElementById('f-time').value.trim(),
+    notes: document.getElementById('f-notes').value.trim(),
+    ingredients: document.getElementById('f-ingredients').value.trim(),
+  });
+  saveRecipes();
+  clearForm();
+  formCard.classList.remove('show');
+  renderRecipes();
+  showToast('已新增料理紀錄');
+});
+
+function deleteRecipe(id){
+  recipes = recipes.filter(r=>r.id!==id);
+  saveRecipes();
+  renderRecipes();
+}
+
+function addIngredientsToShopping(recipe){
+  const list = recipe.ingredients.split(/[,、\n]/).map(s=>s.trim()).filter(Boolean);
+  if(list.length===0){ showToast('這道料理沒有登記食材'); return; }
+  const existingNames = new Set(shopping.filter(i=>!i.checked).map(i=>i.name));
+  const additions = list.filter(n=>!existingNames.has(n)).map(n=>({
+    id: Date.now().toString()+Math.random(), name:n, checked:false, from:recipe.name
+  }));
+  shopping = [...additions, ...shopping];
+  saveShopping();
+  renderShopping();
+  showToast(`已將「${recipe.name}」的食材加入採買清單`);
+}
+
+function renderRecipes(){
+  const listEl = document.getElementById('recipeList');
+  const emptyEl = document.getElementById('recipesEmpty');
+  listEl.innerHTML = '';
+  emptyEl.style.display = recipes.length===0 ? 'flex' : 'none';
+  recipes.forEach(r=>{
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+    card.innerHTML = `
+      <div class="recipe-top">
+        <span class="recipe-name"></span>
+        <button class="icon-btn del-btn">🗑</button>
+      </div>
+      <div class="tag-row">
+        <span class="tag"></span>
+        ${r.mode ? '<span class="tag mode-tag"></span>' : ''}
+        ${r.time ? '<span class="tag tag-time">⏱ <span class="time-text"></span></span>' : ''}
+      </div>
+      ${r.notes ? '<div class="notes-row">📝&nbsp;<span class="notes-text"></span></div>' : ''}
+      ${r.ingredients ? '<button class="add-to-cart-btn">食材加入採買清單 →</button>' : ''}
+    `;
+    card.querySelector('.recipe-name').textContent = r.name;
+    card.querySelector('.tag').textContent = r.tool;
+    if(r.mode) card.querySelector('.mode-tag').textContent = r.mode;
+    if(r.time) card.querySelector('.time-text').textContent = r.time;
+    if(r.notes) card.querySelector('.notes-text').textContent = r.notes;
+    card.querySelector('.del-btn').addEventListener('click', ()=>deleteRecipe(r.id));
+    if(r.ingredients){
+      card.querySelector('.add-to-cart-btn').addEventListener('click', ()=>addIngredientsToShopping(r));
+    }
+    listEl.appendChild(card);
+  });
+}
+
+// ---- Shopping list ----
+document.getElementById('addItemBtn').addEventListener('click', addManualItem);
+document.getElementById('newItemInput').addEventListener('keydown', e=>{
+  if(e.key==='Enter') addManualItem();
+});
+function addManualItem(){
+  const input = document.getElementById('newItemInput');
+  const val = input.value.trim();
+  if(!val) return;
+  shopping.unshift({ id: Date.now().toString(), name: val, checked:false, from:null });
+  saveShopping();
+  input.value='';
+  renderShopping();
+}
+function toggleItem(id){
+  shopping = shopping.map(i=> i.id===id ? {...i, checked:!i.checked} : i);
+  saveShopping();
+  renderShopping();
+}
+function deleteItem(id){
+  shopping = shopping.filter(i=>i.id!==id);
+  saveShopping();
+  renderShopping();
+}
+document.getElementById('clearBtn').addEventListener('click', ()=>{
+  shopping = shopping.filter(i=>!i.checked);
+  saveShopping();
+  renderShopping();
+});
+
+function renderShopping(){
+  const listEl = document.getElementById('shopList');
+  const emptyEl = document.getElementById('shoppingEmpty');
+  const clearBtn = document.getElementById('clearBtn');
+  const badge = document.getElementById('countBadge');
+  listEl.innerHTML = '';
+  emptyEl.style.display = shopping.length===0 ? 'flex' : 'none';
+  const uncheckedCount = shopping.filter(i=>!i.checked).length;
+  if(uncheckedCount>0){ badge.style.display='inline-block'; badge.textContent=uncheckedCount; }
+  else { badge.style.display='none'; }
+  clearBtn.style.display = shopping.some(i=>i.checked) ? 'block' : 'none';
+
+  shopping.forEach(item=>{
+    const row = document.createElement('div');
+    row.className = 'shop-row' + (item.checked ? ' checked' : '');
+    row.innerHTML = `
+      <div class="checkbox ${item.checked?'on':''}">${item.checked?'✓':''}</div>
+      <div style="flex:1;">
+        <span class="shop-item-name ${item.checked?'checked':''}"></span>
+        ${item.from ? '<span class="from-tag"></span>' : ''}
+      </div>
+      <button class="icon-btn del-item-btn">✕</button>
+    `;
+    row.querySelector('.shop-item-name').textContent = item.name;
+    if(item.from) row.querySelector('.from-tag').textContent = `來自「${item.from}」`;
+    row.querySelector('.checkbox').addEventListener('click', ()=>toggleItem(item.id));
+    row.querySelector('.del-item-btn').addEventListener('click', ()=>deleteItem(item.id));
+    listEl.appendChild(row);
+  });
+}
+
+renderRecipes();
+renderShopping();
+</script>
+</body>
+</html>
