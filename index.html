@@ -9,6 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="灶邊筆記">
 <meta name="theme-color" content="#F7F1E4">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
 <title>灶邊筆記</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
@@ -37,8 +39,31 @@ button{ font-family:inherit; }
   width:40px; height:40px; border-radius:12px; background:var(--rustSoft);
   display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px;
 }
-h1{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; margin:0; letter-spacing:0.01em; }
+h1{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; margin:0; letter-spacing:0.01em; display:flex; align-items:center; gap:8px; }
+.ver-badge{
+  font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--muted);
+  background:var(--card); border:1px solid var(--cardBorder); border-radius:20px; padding:2px 9px;
+  cursor:pointer;
+}
 .subtitle{ margin:2px 0 0; font-size:12.5px; color:var(--muted); }
+
+.modal-overlay{
+  display:none; position:fixed; inset:0; background:rgba(59,47,34,0.45);
+  align-items:flex-end; justify-content:center; z-index:50;
+}
+.modal-overlay.show{ display:flex; }
+.modal-sheet{
+  background:var(--card); width:100%; max-width:640px; border-radius:18px 18px 0 0;
+  padding:20px 20px 28px; max-height:75vh; overflow-y:auto;
+}
+.modal-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+.modal-title{ font-family:'Fraunces',serif; font-weight:600; font-size:17px; }
+.ver-entry{ margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--cardBorder); }
+.ver-entry:last-child{ border-bottom:none; margin-bottom:0; padding-bottom:0; }
+.ver-entry-head{ display:flex; align-items:baseline; gap:8px; margin-bottom:6px; }
+.ver-num{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--rust); font-weight:600; }
+.ver-date{ font-size:11.5px; color:var(--muted); }
+.ver-list{ margin:0; padding-left:18px; font-size:13px; color:#5A4A36; line-height:1.8; }
 
 .tab-row{ display:flex; gap:6px; }
 .tab-btn{
@@ -140,7 +165,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">🍳</div>
     <div>
-      <h1>灶邊筆記</h1>
+      <h1>灶邊筆記 <button class="ver-badge" id="verBadgeBtn">v1.2</button></h1>
       <p class="subtitle">烹煮方式 · 時間 · 採買清單</p>
     </div>
   </div>
@@ -178,8 +203,8 @@ textarea.field{ min-height:56px; resize:vertical; }
         </div>
       </div>
 
-      <label class="field-label">時間</label>
-      <input class="field" id="f-time" placeholder="例如：18-20分鐘">
+      <label class="field-label">溫度/時間</label>
+      <input class="field" id="f-time" placeholder="例如：180°C，18-20分鐘">
 
       <label class="field-label">備註</label>
       <textarea class="field" id="f-notes" placeholder="例如：中間需翻面"></textarea>
@@ -219,6 +244,16 @@ textarea.field{ min-height:56px; resize:vertical; }
 
 <div class="toast" id="toast"></div>
 
+<div class="modal-overlay" id="verModal">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <span class="modal-title">版本紀錄</span>
+      <button class="icon-btn" id="closeVerBtn">✕</button>
+    </div>
+    <div id="verList"></div>
+  </div>
+</div>
+
 <script>
 const STORAGE_RECIPES = 'zaobian-recipes';
 const STORAGE_SHOPPING = 'zaobian-shopping';
@@ -236,6 +271,55 @@ function showToast(msg){
   clearTimeout(showToast._timer);
   showToast._timer = setTimeout(()=> t.classList.remove('show'), 2200);
 }
+
+const CHANGELOG = [
+  {
+    version: 'v1.2',
+    date: '2026-08-20',
+    changes: [
+      '新增自訂App圖示（食譜本造型）',
+    ],
+  },
+  {
+    version: 'v1.1',
+    date: '2026-08-20',
+    changes: [
+      '料理紀錄新增「編輯」功能，不用刪除重打',
+      '「時間」欄位改名為「溫度/時間」',
+      '新增版本紀錄功能',
+    ],
+  },
+  {
+    version: 'v1.0',
+    date: '2026-08-19',
+    changes: [
+      '初版上線：料理紀錄、採買清單',
+      '食材可一鍵加入採買清單',
+    ],
+  },
+];
+
+function renderChangelog(){
+  const el = document.getElementById('verList');
+  el.innerHTML = CHANGELOG.map(v => `
+    <div class="ver-entry">
+      <div class="ver-entry-head">
+        <span class="ver-num">${v.version}</span>
+        <span class="ver-date">${v.date}</span>
+      </div>
+      <ul class="ver-list">
+        ${v.changes.map(c => `<li>${c}</li>`).join('')}
+      </ul>
+    </div>
+  `).join('');
+}
+const verModal = document.getElementById('verModal');
+document.getElementById('verBadgeBtn').addEventListener('click', ()=>{
+  renderChangelog();
+  verModal.classList.add('show');
+});
+document.getElementById('closeVerBtn').addEventListener('click', ()=> verModal.classList.remove('show'));
+verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.classList.remove('show'); });
 
 // ---- Tabs ----
 document.querySelectorAll('.tab-btn').forEach(btn=>{
