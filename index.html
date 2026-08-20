@@ -158,7 +158,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 
     <div class="form-card" id="formCard">
       <div class="form-head">
-        <span class="form-title">新增料理紀錄</span>
+        <span class="form-title" id="formTitleText">新增料理紀錄</span>
         <button class="icon-btn" id="closeFormBtn">✕</button>
       </div>
       <label class="field-label">料理名稱</label>
@@ -249,9 +249,17 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 
 // ---- Recipe form ----
 const formCard = document.getElementById('formCard');
-document.getElementById('openFormBtn').addEventListener('click', ()=> formCard.classList.add('show'));
+let editingId = null;
+
+document.getElementById('openFormBtn').addEventListener('click', ()=>{
+  editingId = null;
+  document.getElementById('formTitleText').textContent = '新增料理紀錄';
+  clearForm();
+  formCard.classList.add('show');
+});
 document.getElementById('closeFormBtn').addEventListener('click', ()=>{
   formCard.classList.remove('show');
+  editingId = null;
   clearForm();
 });
 function clearForm(){
@@ -262,23 +270,46 @@ function clearForm(){
   document.getElementById('f-notes').value='';
   document.getElementById('f-ingredients').value='';
 }
+function fillForm(r){
+  document.getElementById('f-name').value = r.name;
+  document.getElementById('f-tool').value = r.tool;
+  document.getElementById('f-mode').value = r.mode || '';
+  document.getElementById('f-time').value = r.time || '';
+  document.getElementById('f-notes').value = r.notes || '';
+  document.getElementById('f-ingredients').value = r.ingredients || '';
+}
+function editRecipe(id){
+  const r = recipes.find(x=>x.id===id);
+  if(!r) return;
+  editingId = id;
+  document.getElementById('formTitleText').textContent = '編輯料理紀錄';
+  fillForm(r);
+  formCard.classList.add('show');
+  formCard.scrollIntoView({ behavior:'smooth', block:'start' });
+}
 document.getElementById('saveBtn').addEventListener('click', ()=>{
   const name = document.getElementById('f-name').value.trim();
   if(!name) return;
-  recipes.unshift({
-    id: Date.now().toString(),
+  const data = {
     name,
     tool: document.getElementById('f-tool').value,
     mode: document.getElementById('f-mode').value.trim(),
     time: document.getElementById('f-time').value.trim(),
     notes: document.getElementById('f-notes').value.trim(),
     ingredients: document.getElementById('f-ingredients').value.trim(),
-  });
+  };
+  if(editingId){
+    recipes = recipes.map(r=> r.id===editingId ? { ...r, ...data } : r);
+    showToast('已更新料理紀錄');
+  } else {
+    recipes.unshift({ id: Date.now().toString(), ...data });
+    showToast('已新增料理紀錄');
+  }
   saveRecipes();
+  editingId = null;
   clearForm();
   formCard.classList.remove('show');
   renderRecipes();
-  showToast('已新增料理紀錄');
 });
 
 function deleteRecipe(id){
@@ -311,7 +342,10 @@ function renderRecipes(){
     card.innerHTML = `
       <div class="recipe-top">
         <span class="recipe-name"></span>
-        <button class="icon-btn del-btn">🗑</button>
+        <div style="display:flex; gap:2px;">
+          <button class="icon-btn edit-btn">✏️</button>
+          <button class="icon-btn del-btn">🗑</button>
+        </div>
       </div>
       <div class="tag-row">
         <span class="tag"></span>
@@ -326,6 +360,7 @@ function renderRecipes(){
     if(r.mode) card.querySelector('.mode-tag').textContent = r.mode;
     if(r.time) card.querySelector('.time-text').textContent = r.time;
     if(r.notes) card.querySelector('.notes-text').textContent = r.notes;
+    card.querySelector('.edit-btn').addEventListener('click', ()=>editRecipe(r.id));
     card.querySelector('.del-btn').addEventListener('click', ()=>deleteRecipe(r.id));
     if(r.ingredients){
       card.querySelector('.add-to-cart-btn').addEventListener('click', ()=>addIngredientsToShopping(r));
