@@ -127,6 +127,17 @@ textarea.field{ min-height:56px; resize:vertical; }
   margin-top:12px; border:none; background:transparent; color:var(--sageDark);
   font-size:12.5px; font-weight:600; padding:0; cursor:pointer; display:flex; align-items:center;
 }
+.ing-toggle{
+  margin-top:12px; font-size:12.5px; color:var(--rust); font-weight:600;
+  display:flex; align-items:center; gap:5px; cursor:pointer; user-select:none;
+}
+.ing-arrow{ transition:transform .2s; display:inline-block; }
+.ing-arrow.open{ transform:rotate(180deg); }
+.ing-body{ max-height:0; overflow:hidden; transition:max-height .25s ease; }
+.ing-body.open{ max-height:200px; }
+.ing-body-inner{ padding-top:10px; }
+.ing-chip-row{ display:flex; flex-wrap:wrap; gap:6px; }
+.ing-chip{ font-size:11.5px; padding:4px 10px; border-radius:20px; background:#FFFFFF; border:1px solid var(--cardBorder); color:var(--ink); }
 
 .shop-input-row{ display:flex; gap:8px; margin-bottom:18px; }
 .add-small-btn{
@@ -165,7 +176,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">🍳</div>
     <div>
-      <h1>灶邊筆記 <button class="ver-badge" id="verBadgeBtn">v1.2</button></h1>
+      <h1>灶邊筆記 <button class="ver-badge" id="verBadgeBtn">v1.3</button></h1>
       <p class="subtitle">烹煮方式 · 時間 · 採買清單</p>
     </div>
   </div>
@@ -273,6 +284,14 @@ function showToast(msg){
 }
 
 const CHANGELOG = [
+  {
+    version: 'v1.3',
+    date: '2026-08-21',
+    changes: [
+      '食材改為摺疊式標籤呈現，點「查看食材」可展開',
+      '「加入採買清單」移到展開內容裡，可自由選擇是否加入',
+    ],
+  },
   {
     version: 'v1.2',
     date: '2026-08-20',
@@ -402,8 +421,12 @@ function deleteRecipe(id){
   renderRecipes();
 }
 
+function ingList(recipe){
+  return recipe.ingredients.split(/[,、\n]/).map(s=>s.trim()).filter(Boolean);
+}
+
 function addIngredientsToShopping(recipe){
-  const list = recipe.ingredients.split(/[,、\n]/).map(s=>s.trim()).filter(Boolean);
+  const list = ingList(recipe);
   if(list.length===0){ showToast('這道料理沒有登記食材'); return; }
   const existingNames = new Set(shopping.filter(i=>!i.checked).map(i=>i.name));
   const additions = list.filter(n=>!existingNames.has(n)).map(n=>({
@@ -437,7 +460,17 @@ function renderRecipes(){
         ${r.time ? '<span class="tag tag-time">⏱ <span class="time-text"></span></span>' : ''}
       </div>
       ${r.notes ? '<div class="notes-row">📝&nbsp;<span class="notes-text"></span></div>' : ''}
-      ${r.ingredients ? '<button class="add-to-cart-btn">食材加入採買清單 →</button>' : ''}
+      ${r.ingredients ? `
+        <div class="ing-toggle">
+          🧾 查看食材（${ingList(r).length}項）<span class="ing-arrow">▾</span>
+        </div>
+        <div class="ing-body">
+          <div class="ing-body-inner">
+            <div class="ing-chip-row"></div>
+            <button class="add-to-cart-btn">食材加入採買清單 →</button>
+          </div>
+        </div>
+      ` : ''}
     `;
     card.querySelector('.recipe-name').textContent = r.name;
     card.querySelector('.tag').textContent = r.tool;
@@ -447,6 +480,20 @@ function renderRecipes(){
     card.querySelector('.edit-btn').addEventListener('click', ()=>editRecipe(r.id));
     card.querySelector('.del-btn').addEventListener('click', ()=>deleteRecipe(r.id));
     if(r.ingredients){
+      const chipRow = card.querySelector('.ing-chip-row');
+      ingList(r).forEach(n=>{
+        const chip = document.createElement('span');
+        chip.className = 'ing-chip';
+        chip.textContent = n;
+        chipRow.appendChild(chip);
+      });
+      const toggle = card.querySelector('.ing-toggle');
+      const body = card.querySelector('.ing-body');
+      const arrow = card.querySelector('.ing-arrow');
+      toggle.addEventListener('click', ()=>{
+        body.classList.toggle('open');
+        arrow.classList.toggle('open');
+      });
       card.querySelector('.add-to-cart-btn').addEventListener('click', ()=>addIngredientsToShopping(r));
     }
     listEl.appendChild(card);
