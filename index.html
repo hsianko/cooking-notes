@@ -30,6 +30,7 @@ body{
 }
 input::placeholder, textarea::placeholder{ color:#B9AC91; }
 select{ -webkit-appearance:none; appearance:none; }
+input[type="date"]{ -webkit-appearance:none; appearance:none; min-width:0; max-width:100%; }
 button{ font-family:inherit; }
 
 .header-wrap{
@@ -48,6 +49,7 @@ h1{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; margin:0; let
   cursor:pointer;
 }
 .subtitle{ margin:2px 0 0; font-size:12.5px; color:var(--muted); }
+.clock{ margin:6px 0 0; font-size:12px; color:var(--muted); font-family:'IBM Plex Mono',monospace; }
 
 /* reminder banners - shown above all tabs */
 .reminder-wrap{ padding:12px 20px 0; max-width:640px; margin:0 auto; }
@@ -192,7 +194,10 @@ textarea.field{ min-height:56px; resize:vertical; }
 
 /* ===== 記帳 ===== */
 .money-summary{ background:var(--card); border:1px solid var(--cardBorder); border-radius:14px; padding:16px; margin-bottom:14px; }
-.month-total{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+.month-total{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.month-nav{ display:flex; align-items:center; gap:8px; }
+.month-nav-btn{ border:none; background:var(--rustSoft); color:var(--rust); width:26px; height:26px; border-radius:8px; font-size:13px; cursor:pointer; }
+.month-nav-btn:disabled{ opacity:0.35; }
 .month-total .lbl{ font-size:12px; color:var(--muted); }
 .month-total .val{ font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:700; color:var(--ink); }
 .chip-row{ display:flex; gap:6px; flex-wrap:wrap; }
@@ -232,8 +237,9 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.1</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.2</button></h1>
       <p class="subtitle" id="subtitleText">烹煮方式 · 時間 · 採買清單</p>
+      <p class="clock" id="clockText"></p>
     </div>
   </div>
 </div>
@@ -309,7 +315,11 @@ textarea.field{ min-height:56px; resize:vertical; }
   <section class="tabpanel" id="money">
     <div class="money-summary">
       <div class="month-total">
-        <span class="lbl" id="monthLabel">本月支出</span>
+        <div class="month-nav">
+          <button class="month-nav-btn" id="prevMonthBtn">◀</button>
+          <span class="lbl" id="monthLabel">本月支出</span>
+          <button class="month-nav-btn" id="nextMonthBtn">▶</button>
+        </div>
         <span class="val" id="monthTotal">$0</span>
       </div>
       <div class="chip-row" id="catChipRow"></div>
@@ -422,6 +432,16 @@ function todayStr(){
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
+function updateClock(){
+  const d = new Date();
+  const weekday = ['日','一','二','三','四','五','六'][d.getDay()];
+  const text = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}（週${weekday}） ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+  const el = document.getElementById('clockText');
+  if(el) el.textContent = text;
+}
+updateClock();
+setInterval(updateClock, 1000*30);
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -432,6 +452,16 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v2.2',
+    date: '2026-09-01',
+    changes: [
+      '修正日期選擇欄位在部分手機上超出邊界的問題',
+      '記帳、待辦事項新增「編輯」功能',
+      '標題下方新增即時日期時間顯示',
+      '記帳新增月份切換（◀▶），可回顧歷史月份支出',
+    ],
+  },
   {
     version: 'v2.1',
     date: '2026-09-01',
@@ -723,6 +753,8 @@ let expenses = JSON.parse(localStorage.getItem(STORAGE_EXPENSES) || '[]');
 let categories = JSON.parse(localStorage.getItem(STORAGE_CATEGORIES) || '["飼料","醫療","用品"]');
 let payments = JSON.parse(localStorage.getItem(STORAGE_PAYMENTS) || '["現金","信用卡"]');
 let activeCategory = '全部';
+let monthOffset = 0; // 0=本月, -1=上月...
+let editingExpenseId = null;
 
 function saveExpenses(){ localStorage.setItem(STORAGE_EXPENSES, JSON.stringify(expenses)); }
 function saveCategories(){ localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(categories)); }
@@ -751,6 +783,8 @@ function syncRecipeToCloud(recipe){
 
 const expenseFormCard = document.getElementById('expenseFormCard');
 document.getElementById('openExpenseFormBtn').addEventListener('click', ()=>{
+  editingExpenseId = null;
+  document.getElementById('expenseFormTitle').textContent = '新增支出';
   document.getElementById('e-date').value = todayStr();
   document.getElementById('e-amount').value = '';
   document.getElementById('e-note').value = '';
@@ -758,7 +792,26 @@ document.getElementById('openExpenseFormBtn').addEventListener('click', ()=>{
   renderPaymentSelect();
   expenseFormCard.classList.add('show');
 });
-document.getElementById('closeExpenseFormBtn').addEventListener('click', ()=> expenseFormCard.classList.remove('show'));
+document.getElementById('closeExpenseFormBtn').addEventListener('click', ()=>{
+  expenseFormCard.classList.remove('show');
+  editingExpenseId = null;
+});
+
+function editExpense(id){
+  const exp = expenses.find(e=>e.id===id);
+  if(!exp) return;
+  editingExpenseId = id;
+  document.getElementById('expenseFormTitle').textContent = '編輯支出';
+  renderCategorySelect();
+  renderPaymentSelect();
+  document.getElementById('e-date').value = exp.date;
+  document.getElementById('e-category').value = exp.category;
+  document.getElementById('e-amount').value = exp.amount;
+  document.getElementById('e-payment').value = exp.payment;
+  document.getElementById('e-note').value = exp.note || '';
+  expenseFormCard.classList.add('show');
+  expenseFormCard.scrollIntoView({behavior:'smooth', block:'start'});
+}
 
 function renderCategorySelect(){
   const sel = document.getElementById('e-category');
@@ -798,21 +851,27 @@ document.getElementById('e-payment').addEventListener('change', function(){
 document.getElementById('saveExpenseBtn').addEventListener('click', ()=>{
   const amount = parseFloat(document.getElementById('e-amount').value);
   if(!amount || amount<=0){ showToast('請輸入金額'); return; }
-  const exp = {
-    id: Date.now().toString(),
+  const data = {
     date: document.getElementById('e-date').value || todayStr(),
     category: document.getElementById('e-category').value,
     amount,
     payment: document.getElementById('e-payment').value,
     note: document.getElementById('e-note').value.trim(),
   };
-  expenses.unshift(exp);
+  if(editingExpenseId){
+    expenses = expenses.map(e=> e.id===editingExpenseId ? { ...e, ...data } : e);
+    showToast('已更新支出（僅本機，雲端試算表不會同步修改）');
+  } else {
+    const exp = { id: Date.now().toString(), ...data };
+    expenses.unshift(exp);
+    syncExpenseToCloud(exp);
+    showToast('已新增支出，同步中...');
+  }
   saveExpenses();
-  syncExpenseToCloud(exp);
+  editingExpenseId = null;
   expenseFormCard.classList.remove('show');
   renderCategoryChips();
   renderExpenses();
-  showToast('已新增支出，同步中...');
 });
 
 function deleteExpense(id){
@@ -834,20 +893,36 @@ function renderCategoryChips(){
   });
 }
 
+function targetYm(){
+  const d = new Date();
+  d.setMonth(d.getMonth() + monthOffset);
+  return { year: d.getFullYear(), month: d.getMonth()+1, ym: d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0') };
+}
+
+document.getElementById('prevMonthBtn').addEventListener('click', ()=>{
+  monthOffset -= 1;
+  renderExpenses();
+});
+document.getElementById('nextMonthBtn').addEventListener('click', ()=>{
+  if(monthOffset >= 0) return;
+  monthOffset += 1;
+  renderExpenses();
+});
+
 function renderExpenses(){
   const wrap = document.getElementById('expenseListWrap');
   const emptyEl = document.getElementById('moneyEmpty');
-  const filtered = activeCategory==='全部' ? expenses : expenses.filter(e=>e.category===activeCategory);
+  const { month, ym } = targetYm();
+
+  const filtered = expenses.filter(e=> e.date && e.date.startsWith(ym) && (activeCategory==='全部'||e.category===activeCategory));
 
   emptyEl.style.display = filtered.length===0 ? 'flex' : 'none';
   wrap.innerHTML = '';
 
-  const now = new Date();
-  const ym = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
-  const monthSum = expenses.filter(e=> e.date && e.date.startsWith(ym) && (activeCategory==='全部'||e.category===activeCategory))
-    .reduce((s,e)=>s+Number(e.amount),0);
+  const monthSum = filtered.reduce((s,e)=>s+Number(e.amount),0);
   document.getElementById('monthTotal').textContent = '$' + monthSum.toLocaleString();
-  document.getElementById('monthLabel').textContent = `${now.getMonth()+1}月支出${activeCategory==='全部'?'':'（'+activeCategory+'）'}`;
+  document.getElementById('monthLabel').textContent = `${month}月支出${activeCategory==='全部'?'':'（'+activeCategory+'）'}`;
+  document.getElementById('nextMonthBtn').disabled = monthOffset >= 0;
 
   const byDate = {};
   filtered.forEach(e=>{ (byDate[e.date] = byDate[e.date]||[]).push(e); });
@@ -872,11 +947,12 @@ function renderExpenses(){
             <div class="meta"></div>
           </div>
         </div>
-        <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn del-exp-btn">✕</button></div>
+        <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
       `;
       row.querySelector('.name').textContent = e.note || e.category;
       row.querySelector('.meta').textContent = `${e.category} · ${e.payment}`;
       row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
+      row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
       row.querySelector('.del-exp-btn').addEventListener('click', ()=>deleteExpense(e.id));
       card.appendChild(row);
     });
@@ -900,31 +976,53 @@ document.getElementById('cameraInput').addEventListener('change', function(){
 
 /* ============ 待辦事項 ============ */
 let todos = JSON.parse(localStorage.getItem(STORAGE_TODOS) || '[]');
+let editingTodoId = null;
 function saveTodos(){ localStorage.setItem(STORAGE_TODOS, JSON.stringify(todos)); }
 
 const todoFormCard = document.getElementById('todoFormCard');
 document.getElementById('openTodoFormBtn').addEventListener('click', ()=>{
+  editingTodoId = null;
+  document.getElementById('todoFormTitle').textContent = '新增待辦事項';
   document.getElementById('t-name').value='';
   document.getElementById('t-priority').value='normal';
   document.getElementById('t-due').value='';
   todoFormCard.classList.add('show');
 });
-document.getElementById('closeTodoFormBtn').addEventListener('click', ()=> todoFormCard.classList.remove('show'));
+document.getElementById('closeTodoFormBtn').addEventListener('click', ()=>{
+  todoFormCard.classList.remove('show');
+  editingTodoId = null;
+});
+function editTodo(id){
+  const t = todos.find(x=>x.id===id);
+  if(!t) return;
+  editingTodoId = id;
+  document.getElementById('todoFormTitle').textContent = '編輯待辦事項';
+  document.getElementById('t-name').value = t.name;
+  document.getElementById('t-priority').value = t.priority;
+  document.getElementById('t-due').value = t.due || '';
+  todoFormCard.classList.add('show');
+  todoFormCard.scrollIntoView({behavior:'smooth', block:'start'});
+}
 document.getElementById('saveTodoBtn').addEventListener('click', ()=>{
   const name = document.getElementById('t-name').value.trim();
   if(!name) return;
-  todos.unshift({
-    id: Date.now().toString(),
+  const data = {
     name,
     priority: document.getElementById('t-priority').value,
     due: document.getElementById('t-due').value || null,
-    done: false,
-  });
+  };
+  if(editingTodoId){
+    todos = todos.map(t=> t.id===editingTodoId ? { ...t, ...data } : t);
+    showToast('已更新待辦事項');
+  } else {
+    todos.unshift({ id: Date.now().toString(), ...data, done:false });
+    showToast('已新增待辦事項');
+  }
   saveTodos();
+  editingTodoId = null;
   todoFormCard.classList.remove('show');
   renderTodos();
   renderReminders();
-  showToast('已新增待辦事項');
 });
 function toggleTodo(id){
   todos = todos.map(t=> t.id===id ? {...t, done:!t.done} : t);
@@ -961,11 +1059,13 @@ function renderTodos(){
         ${t.due ? '<div class="todo-due"></div>' : ''}
       </div>
       <span class="pri-tag ${t.priority==='high'?'pri-high':'pri-normal'}">${t.priority==='high'?'急':'普通'}</span>
+      <button class="icon-btn edit-todo-btn">✏️</button>
       <button class="icon-btn del-todo-btn">✕</button>
     `;
     row.querySelector('.todo-name').textContent = t.name;
     if(t.due) row.querySelector('.todo-due').textContent = '到期：'+t.due;
     row.querySelector('.checkbox').addEventListener('click', ()=>toggleTodo(t.id));
+    row.querySelector('.edit-todo-btn').addEventListener('click', ()=>editTodo(t.id));
     row.querySelector('.del-todo-btn').addEventListener('click', ()=>deleteTodo(t.id));
     listEl.appendChild(row);
   });
