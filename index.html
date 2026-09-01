@@ -232,7 +232,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.0</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.1</button></h1>
       <p class="subtitle" id="subtitleText">烹煮方式 · 時間 · 採買清單</p>
     </div>
   </div>
@@ -433,6 +433,13 @@ function showToast(msg){
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
   {
+    version: 'v2.1',
+    date: '2026-09-01',
+    changes: [
+      '料理紀錄新增/編輯時，會自動同步備份到雲端試算表',
+    ],
+  },
+  {
     version: 'v2.0',
     date: '2026-09-01',
     changes: [
@@ -567,9 +574,10 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
     showToast('已更新料理紀錄');
   } else {
     recipes.unshift({ id: Date.now().toString(), ...data });
-    showToast('已新增料理紀錄');
+    showToast('已新增料理紀錄，同步中...');
   }
   saveRecipes();
+  syncRecipeToCloud(data);
   editingId = null;
   clearForm();
   formCard.classList.remove('show');
@@ -726,6 +734,17 @@ function syncExpenseToCloud(exp){
     body: JSON.stringify({
       token: SHEET_TOKEN, date: exp.date, category: exp.category,
       amount: exp.amount, payment: exp.payment, note: exp.note
+    })
+  }).catch(()=>{ /* 離線或連線失敗時，資料仍保留在本機，之後可再補送 */ });
+}
+
+function syncRecipeToCloud(recipe){
+  fetch(SHEET_API_URL, {
+    method:'POST',
+    body: JSON.stringify({
+      token: SHEET_TOKEN, type: 'recipe',
+      name: recipe.name, tool: recipe.tool, mode: recipe.mode,
+      time: recipe.time, notes: recipe.notes, ingredients: recipe.ingredients
     })
   }).catch(()=>{ /* 離線或連線失敗時，資料仍保留在本機，之後可再補送 */ });
 }
