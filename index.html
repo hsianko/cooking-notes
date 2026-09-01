@@ -7,11 +7,11 @@
 <meta name="googlebot" content="noindex, nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="灶邊筆記">
+<meta name="apple-mobile-web-app-title" content="小日子">
 <meta name="theme-color" content="#F7F1E4">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" href="icon.png">
-<title>灶邊筆記</title>
+<title>小日子</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
 
@@ -19,11 +19,13 @@
   --bg:#F7F1E4; --card:#FFFCF4; --cardBorder:#E6DCC4;
   --ink:#3B2F22; --muted:#9C8A6E; --sage:#7C8B5E; --sageDark:#5F6E45;
   --rust:#C1622C; --rustSoft:#EFDCC9;
+  --red:#C1453D; --redSoft:#F5DCD9;
+  --orange:#D98A3D; --orangeSoft:#F5E7D0;
 }
 *{box-sizing:border-box;}
 body{
   margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
-  font-family:'IBM Plex Sans TC', sans-serif; padding-bottom:40px;
+  font-family:'IBM Plex Sans TC', sans-serif; padding-bottom:96px;
   -webkit-font-smoothing:antialiased;
 }
 input::placeholder, textarea::placeholder{ color:#B9AC91; }
@@ -31,10 +33,10 @@ select{ -webkit-appearance:none; appearance:none; }
 button{ font-family:inherit; }
 
 .header-wrap{
-  padding:24px 20px 0; border-bottom:1px solid var(--cardBorder);
+  padding:24px 20px 14px; border-bottom:1px solid var(--cardBorder);
   background:linear-gradient(180deg,#FBF6EA,#F7F1E4);
 }
-.header-row{ display:flex; align-items:center; gap:12px; margin-bottom:18px; }
+.header-row{ display:flex; align-items:center; gap:12px; }
 .logo{
   width:40px; height:40px; border-radius:12px; background:var(--rustSoft);
   display:flex; align-items:center; justify-content:center; flex-shrink:0; font-size:20px;
@@ -46,6 +48,16 @@ h1{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; margin:0; let
   cursor:pointer;
 }
 .subtitle{ margin:2px 0 0; font-size:12.5px; color:var(--muted); }
+
+/* reminder banners - shown above all tabs */
+.reminder-wrap{ padding:12px 20px 0; max-width:640px; margin:0 auto; }
+.reminder-banner{
+  border-radius:12px; padding:10px 12px; margin-bottom:8px;
+  background:var(--redSoft); border:1px solid #E3B6AF; color:#8A342C;
+  display:flex; align-items:center; gap:8px; font-size:12.5px; cursor:pointer;
+}
+.reminder-banner.today{ background:var(--orangeSoft); border-color:#E8C48E; color:#8A5A1F; }
+.reminder-banner b{ font-weight:700; }
 
 .modal-overlay{
   display:none; position:fixed; inset:0; background:rgba(59,47,34,0.45);
@@ -65,19 +77,7 @@ h1{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; margin:0; let
 .ver-date{ font-size:11.5px; color:var(--muted); }
 .ver-list{ margin:0; padding-left:18px; font-size:13px; color:#5A4A36; line-height:1.8; }
 
-.tab-row{ display:flex; gap:6px; }
-.tab-btn{
-  flex:1; padding:11px 10px; font-size:13.5px; font-weight:500;
-  border:none; background:transparent; color:var(--muted); cursor:pointer;
-  border-bottom:2px solid transparent; display:flex; align-items:center; justify-content:center;
-}
-.tab-btn.active{ color:var(--rust); border-bottom:2px solid var(--rust); font-weight:600; }
-.count-badge{
-  margin-left:6px; background:var(--rust); color:#fff; font-size:10.5px; font-weight:600;
-  border-radius:20px; padding:1px 6px; font-family:'IBM Plex Mono',monospace;
-}
-
-.body-wrap{ padding:20px 20px 0; max-width:640px; margin:0 auto; }
+.body-wrap{ padding:16px 20px 0; max-width:640px; margin:0 auto; }
 .tabpanel{ display:none; }
 .tabpanel.active{ display:block; }
 
@@ -163,28 +163,82 @@ textarea.field{ min-height:56px; resize:vertical; }
 }
 
 .toast{
-  position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
+  position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
   background:var(--ink); color:#FBF6EA; padding:10px 18px; border-radius:30px;
   font-size:12.5px; box-shadow:0 4px 16px rgba(0,0,0,0.2); opacity:0; pointer-events:none; transition:opacity .2s;
+  z-index:40; max-width:88vw; text-align:center;
 }
 .toast.show{ opacity:1; }
+
+/* ===== Bottom tab bar ===== */
+.bottom-bar{
+  position:fixed; bottom:0; left:0; right:0; background:var(--card);
+  border-top:1px solid var(--cardBorder); display:flex; padding:8px 6px calc(14px + env(safe-area-inset-bottom));
+  max-width:640px; margin:0 auto; z-index:30;
+}
+.bt-item{
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
+  font-size:10.5px; color:var(--muted); position:relative; cursor:pointer; padding:4px 0;
+  border:none; background:transparent;
+}
+.bt-item .icon{ font-size:20px; }
+.bt-item.active{ color:var(--rust); font-weight:600; }
+.bt-badge{
+  position:absolute; top:-2px; right:22%; background:var(--rust); color:#fff;
+  font-size:9px; font-weight:700; border-radius:20px; min-width:15px; height:15px;
+  display:flex; align-items:center; justify-content:center; padding:0 3px;
+  font-family:'IBM Plex Mono',monospace;
+}
+
+/* ===== 記帳 ===== */
+.money-summary{ background:var(--card); border:1px solid var(--cardBorder); border-radius:14px; padding:16px; margin-bottom:14px; }
+.month-total{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px; }
+.month-total .lbl{ font-size:12px; color:var(--muted); }
+.month-total .val{ font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:700; color:var(--ink); }
+.chip-row{ display:flex; gap:6px; flex-wrap:wrap; }
+.chip{ font-size:11.5px; padding:5px 12px; border-radius:20px; background:#fff; border:1px solid var(--cardBorder); color:var(--sageDark); cursor:pointer; }
+.chip.active{ background:var(--sage); color:#fff; border-color:var(--sage); }
+.chip.add-chip{ color:var(--rust); border-color:var(--rust); background:var(--rustSoft); }
+
+.expense-row{ display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--cardBorder); }
+.expense-row:last-child{ border-bottom:none; }
+.expense-left{ display:flex; align-items:center; gap:10px; }
+.expense-icon{ width:36px; height:36px; border-radius:10px; background:var(--rustSoft); display:flex; align-items:center; justify-content:center; font-size:16px; flex-shrink:0; }
+.expense-info .name{ font-size:13.5px; font-weight:600; }
+.expense-info .meta{ font-size:11px; color:var(--muted); margin-top:1px; }
+.expense-amt{ font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; color:var(--rust); display:flex; align-items:center; gap:8px; }
+.date-label{ font-size:11px; color:var(--muted); font-weight:600; margin:14px 0 4px; text-transform:uppercase; letter-spacing:.03em; }
+
+.camera-fab{
+  position:fixed; right:20px; bottom:104px; width:52px; height:52px; border-radius:50%;
+  background:var(--sage); color:#fff; display:flex; align-items:center; justify-content:center;
+  font-size:22px; box-shadow:0 4px 14px rgba(95,110,69,0.4); border:none; cursor:pointer; z-index:30;
+}
+
+/* ===== 待辦 ===== */
+.todo-row{ display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--cardBorder); }
+.todo-row:last-child{ border-bottom:none; }
+.todo-row.done .todo-name{ text-decoration:line-through; color:var(--muted); }
+.todo-name{ flex:1; font-size:13.5px; }
+.todo-due{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+.pri-tag{ font-size:10px; padding:3px 8px; border-radius:20px; font-weight:600; flex-shrink:0; }
+.pri-high{ background:var(--redSoft); color:#8A342C; }
+.pri-normal{ background:#EFE7D3; color:var(--sageDark); }
 </style>
 </head>
 <body>
 
 <div class="header-wrap">
   <div class="header-row">
-    <div class="logo">🍳</div>
+    <div class="logo">📖</div>
     <div>
-      <h1>灶邊筆記 <button class="ver-badge" id="verBadgeBtn">v1.3</button></h1>
-      <p class="subtitle">烹煮方式 · 時間 · 採買清單</p>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.0</button></h1>
+      <p class="subtitle" id="subtitleText">烹煮方式 · 時間 · 採買清單</p>
     </div>
   </div>
-  <div class="tab-row">
-    <button class="tab-btn active" data-tab="recipes">🔥 料理紀錄</button>
-    <button class="tab-btn" data-tab="shopping">🧺 採買清單 <span class="count-badge" id="countBadge" style="display:none;">0</span></button>
-  </div>
 </div>
+
+<div class="reminder-wrap" id="reminderWrap"></div>
 
 <div class="body-wrap">
 
@@ -251,6 +305,92 @@ textarea.field{ min-height:56px; resize:vertical; }
     <button class="clear-btn" id="clearBtn" style="display:none;">清除已購買項目</button>
   </section>
 
+  <!-- 記帳 -->
+  <section class="tabpanel" id="money">
+    <div class="money-summary">
+      <div class="month-total">
+        <span class="lbl" id="monthLabel">本月支出</span>
+        <span class="val" id="monthTotal">$0</span>
+      </div>
+      <div class="chip-row" id="catChipRow"></div>
+    </div>
+
+    <button class="add-big-btn" id="openExpenseFormBtn">＋ 新增支出</button>
+
+    <div class="form-card" id="expenseFormCard">
+      <div class="form-head">
+        <span class="form-title" id="expenseFormTitle">新增支出</span>
+        <button class="icon-btn" id="closeExpenseFormBtn">✕</button>
+      </div>
+
+      <label class="field-label">日期</label>
+      <input class="field" type="date" id="e-date">
+
+      <label class="field-label">類別</label>
+      <select class="field" id="e-category"></select>
+
+      <label class="field-label">金額</label>
+      <input class="field" type="number" inputmode="numeric" id="e-amount" placeholder="例如：680">
+
+      <label class="field-label">付款方式</label>
+      <select class="field" id="e-payment"></select>
+
+      <label class="field-label">備註（選填）</label>
+      <input class="field" id="e-note" placeholder="例如：貓咪飼料">
+
+      <button class="save-btn" id="saveExpenseBtn">儲存</button>
+    </div>
+
+    <div class="empty" id="moneyEmpty" style="display:none;">
+      <div class="empty-icon">💰</div>
+      <p class="empty-text">還沒有支出紀錄</p>
+    </div>
+
+    <div id="expenseListWrap"></div>
+
+    <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
+    <button class="camera-fab" id="cameraBtn">📷</button>
+  </section>
+
+  <!-- 待辦 -->
+  <section class="tabpanel" id="todo">
+    <button class="add-big-btn" id="openTodoFormBtn">＋ 新增待辦事項</button>
+
+    <div class="form-card" id="todoFormCard">
+      <div class="form-head">
+        <span class="form-title" id="todoFormTitle">新增待辦事項</span>
+        <button class="icon-btn" id="closeTodoFormBtn">✕</button>
+      </div>
+      <label class="field-label">事項名稱</label>
+      <input class="field" id="t-name" placeholder="例如：幫貓咪買飼料">
+
+      <label class="field-label">優先順序</label>
+      <select class="field" id="t-priority">
+        <option value="normal">普通</option>
+        <option value="high">急</option>
+      </select>
+
+      <label class="field-label">到期日期（選填，設定後才會出現在頂端提醒）</label>
+      <input class="field" type="date" id="t-due">
+
+      <button class="save-btn" id="saveTodoBtn">儲存</button>
+    </div>
+
+    <div class="empty" id="todoEmpty" style="display:none;">
+      <div class="empty-icon">✅</div>
+      <p class="empty-text">目前沒有待辦事項</p>
+    </div>
+
+    <div class="list" id="todoList"></div>
+  </section>
+
+</div>
+
+<div class="bottom-bar" id="bottomBar">
+  <button class="bt-item active" data-tab="recipes"><span class="icon">🍳</span>料理</button>
+  <button class="bt-item" data-tab="shopping"><span class="icon">🧺</span>採買<span class="bt-badge" id="shopBadge" style="display:none;">0</span></button>
+  <button class="bt-item" data-tab="money"><span class="icon">💰</span>記帳</button>
+  <button class="bt-item" data-tab="todo"><span class="icon">✅</span>待辦<span class="bt-badge" id="todoBadge" style="display:none;">0</span></button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -266,14 +406,21 @@ textarea.field{ min-height:56px; resize:vertical; }
 </div>
 
 <script>
+/* ============ 共用工具 ============ */
 const STORAGE_RECIPES = 'zaobian-recipes';
 const STORAGE_SHOPPING = 'zaobian-shopping';
+const STORAGE_EXPENSES = 'xiaorizi-expenses';
+const STORAGE_CATEGORIES = 'xiaorizi-categories';
+const STORAGE_PAYMENTS = 'xiaorizi-payments';
+const STORAGE_TODOS = 'xiaorizi-todos';
 
-let recipes = JSON.parse(localStorage.getItem(STORAGE_RECIPES) || '[]');
-let shopping = JSON.parse(localStorage.getItem(STORAGE_SHOPPING) || '[]');
+const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxlpVAUCOimnIqwrOBq54cpKHt9QoyipLyJu43BPV-etN2eS0dprYCB99ylM_qY3CE/exec';
+const SHEET_TOKEN = 'xiaorizi2026';
 
-function saveRecipes(){ localStorage.setItem(STORAGE_RECIPES, JSON.stringify(recipes)); }
-function saveShopping(){ localStorage.setItem(STORAGE_SHOPPING, JSON.stringify(shopping)); }
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
 
 function showToast(msg){
   const t = document.getElementById('toast');
@@ -283,7 +430,18 @@ function showToast(msg){
   showToast._timer = setTimeout(()=> t.classList.remove('show'), 2200);
 }
 
+/* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v2.0',
+    date: '2026-09-01',
+    changes: [
+      '改名為「小日子」，擴充為生活多功能筆記App',
+      '版面改為底部固定分頁：料理／採買／記帳／待辦',
+      '新增「記帳」功能，支出可同步到雲端試算表',
+      '新增「待辦事項」功能，含到期提醒橫幅',
+    ],
+  },
   {
     version: 'v1.3',
     date: '2026-08-21',
@@ -295,9 +453,7 @@ const CHANGELOG = [
   {
     version: 'v1.2',
     date: '2026-08-20',
-    changes: [
-      '新增自訂App圖示（食譜本造型）',
-    ],
+    changes: [ '新增自訂App圖示（食譜本造型）' ],
   },
   {
     version: 'v1.1',
@@ -311,13 +467,9 @@ const CHANGELOG = [
   {
     version: 'v1.0',
     date: '2026-08-19',
-    changes: [
-      '初版上線：料理紀錄、採買清單',
-      '食材可一鍵加入採買清單',
-    ],
+    changes: [ '初版上線：料理紀錄、採買清單', '食材可一鍵加入採買清單' ],
   },
 ];
-
 function renderChangelog(){
   const el = document.getElementById('verList');
   el.innerHTML = CHANGELOG.map(v => `
@@ -326,9 +478,7 @@ function renderChangelog(){
         <span class="ver-num">${v.version}</span>
         <span class="ver-date">${v.date}</span>
       </div>
-      <ul class="ver-list">
-        ${v.changes.map(c => `<li>${c}</li>`).join('')}
-      </ul>
+      <ul class="ver-list">${v.changes.map(c => `<li>${c}</li>`).join('')}</ul>
     </div>
   `).join('');
 }
@@ -340,20 +490,31 @@ document.getElementById('verBadgeBtn').addEventListener('click', ()=>{
 document.getElementById('closeVerBtn').addEventListener('click', ()=> verModal.classList.remove('show'));
 verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.classList.remove('show'); });
 
-// ---- Tabs ----
-document.querySelectorAll('.tab-btn').forEach(btn=>{
+/* ============ 底部分頁 ============ */
+const subtitles = {
+  recipes: '烹煮方式 · 時間 · 採買清單',
+  shopping: '烹煮方式 · 時間 · 採買清單',
+  money: '記錄每一筆生活支出',
+  todo: '待辦事項與提醒',
+};
+document.querySelectorAll('.bt-item').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.bt-item').forEach(b=>b.classList.remove('active'));
     document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
     btn.classList.add('active');
     document.getElementById(btn.dataset.tab).classList.add('active');
+    document.getElementById('subtitleText').textContent = subtitles[btn.dataset.tab] || '';
   });
 });
 
-// ---- Recipe form ----
+/* ============ 料理紀錄 ============ */
+let recipes = JSON.parse(localStorage.getItem(STORAGE_RECIPES) || '[]');
+let shopping = JSON.parse(localStorage.getItem(STORAGE_SHOPPING) || '[]');
+function saveRecipes(){ localStorage.setItem(STORAGE_RECIPES, JSON.stringify(recipes)); }
+function saveShopping(){ localStorage.setItem(STORAGE_SHOPPING, JSON.stringify(shopping)); }
+
 const formCard = document.getElementById('formCard');
 let editingId = null;
-
 document.getElementById('openFormBtn').addEventListener('click', ()=>{
   editingId = null;
   document.getElementById('formTitleText').textContent = '新增料理紀錄';
@@ -414,17 +575,14 @@ document.getElementById('saveBtn').addEventListener('click', ()=>{
   formCard.classList.remove('show');
   renderRecipes();
 });
-
 function deleteRecipe(id){
   recipes = recipes.filter(r=>r.id!==id);
   saveRecipes();
   renderRecipes();
 }
-
 function ingList(recipe){
   return recipe.ingredients.split(/[,、\n]/).map(s=>s.trim()).filter(Boolean);
 }
-
 function addIngredientsToShopping(recipe){
   const list = ingList(recipe);
   if(list.length===0){ showToast('這道料理沒有登記食材'); return; }
@@ -437,7 +595,6 @@ function addIngredientsToShopping(recipe){
   renderShopping();
   showToast(`已將「${recipe.name}」的食材加入採買清單`);
 }
-
 function renderRecipes(){
   const listEl = document.getElementById('recipeList');
   const emptyEl = document.getElementById('recipesEmpty');
@@ -461,15 +618,11 @@ function renderRecipes(){
       </div>
       ${r.notes ? '<div class="notes-row">📝&nbsp;<span class="notes-text"></span></div>' : ''}
       ${r.ingredients ? `
-        <div class="ing-toggle">
-          🧾 查看食材（${ingList(r).length}項）<span class="ing-arrow">▾</span>
-        </div>
-        <div class="ing-body">
-          <div class="ing-body-inner">
-            <div class="ing-chip-row"></div>
-            <button class="add-to-cart-btn">食材加入採買清單 →</button>
-          </div>
-        </div>
+        <div class="ing-toggle">🧾 查看食材（${ingList(r).length}項）<span class="ing-arrow">▾</span></div>
+        <div class="ing-body"><div class="ing-body-inner">
+          <div class="ing-chip-row"></div>
+          <button class="add-to-cart-btn">食材加入採買清單 →</button>
+        </div></div>
       ` : ''}
     `;
     card.querySelector('.recipe-name').textContent = r.name;
@@ -500,11 +653,9 @@ function renderRecipes(){
   });
 }
 
-// ---- Shopping list ----
+/* ============ 採買清單 ============ */
 document.getElementById('addItemBtn').addEventListener('click', addManualItem);
-document.getElementById('newItemInput').addEventListener('keydown', e=>{
-  if(e.key==='Enter') addManualItem();
-});
+document.getElementById('newItemInput').addEventListener('keydown', e=>{ if(e.key==='Enter') addManualItem(); });
 function addManualItem(){
   const input = document.getElementById('newItemInput');
   const val = input.value.trim();
@@ -529,19 +680,17 @@ document.getElementById('clearBtn').addEventListener('click', ()=>{
   saveShopping();
   renderShopping();
 });
-
 function renderShopping(){
   const listEl = document.getElementById('shopList');
   const emptyEl = document.getElementById('shoppingEmpty');
   const clearBtn = document.getElementById('clearBtn');
-  const badge = document.getElementById('countBadge');
+  const badge = document.getElementById('shopBadge');
   listEl.innerHTML = '';
   emptyEl.style.display = shopping.length===0 ? 'flex' : 'none';
   const uncheckedCount = shopping.filter(i=>!i.checked).length;
-  if(uncheckedCount>0){ badge.style.display='inline-block'; badge.textContent=uncheckedCount; }
+  if(uncheckedCount>0){ badge.style.display='flex'; badge.textContent=uncheckedCount; }
   else { badge.style.display='none'; }
   clearBtn.style.display = shopping.some(i=>i.checked) ? 'block' : 'none';
-
   shopping.forEach(item=>{
     const row = document.createElement('div');
     row.className = 'shop-row' + (item.checked ? ' checked' : '');
@@ -561,8 +710,287 @@ function renderShopping(){
   });
 }
 
+/* ============ 記帳 ============ */
+let expenses = JSON.parse(localStorage.getItem(STORAGE_EXPENSES) || '[]');
+let categories = JSON.parse(localStorage.getItem(STORAGE_CATEGORIES) || '["飼料","醫療","用品"]');
+let payments = JSON.parse(localStorage.getItem(STORAGE_PAYMENTS) || '["現金","信用卡"]');
+let activeCategory = '全部';
+
+function saveExpenses(){ localStorage.setItem(STORAGE_EXPENSES, JSON.stringify(expenses)); }
+function saveCategories(){ localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(categories)); }
+function savePayments(){ localStorage.setItem(STORAGE_PAYMENTS, JSON.stringify(payments)); }
+
+function syncExpenseToCloud(exp){
+  fetch(SHEET_API_URL, {
+    method:'POST',
+    body: JSON.stringify({
+      token: SHEET_TOKEN, date: exp.date, category: exp.category,
+      amount: exp.amount, payment: exp.payment, note: exp.note
+    })
+  }).catch(()=>{ /* 離線或連線失敗時，資料仍保留在本機，之後可再補送 */ });
+}
+
+const expenseFormCard = document.getElementById('expenseFormCard');
+document.getElementById('openExpenseFormBtn').addEventListener('click', ()=>{
+  document.getElementById('e-date').value = todayStr();
+  document.getElementById('e-amount').value = '';
+  document.getElementById('e-note').value = '';
+  renderCategorySelect();
+  renderPaymentSelect();
+  expenseFormCard.classList.add('show');
+});
+document.getElementById('closeExpenseFormBtn').addEventListener('click', ()=> expenseFormCard.classList.remove('show'));
+
+function renderCategorySelect(){
+  const sel = document.getElementById('e-category');
+  sel.innerHTML = categories.map(c=>`<option value="${c}">${c}</option>`).join('') + '<option value="__add__">＋ 新增類別...</option>';
+}
+function renderPaymentSelect(){
+  const sel = document.getElementById('e-payment');
+  sel.innerHTML = payments.map(p=>`<option value="${p}">${p}</option>`).join('') + '<option value="__add__">＋ 新增付款方式...</option>';
+}
+document.getElementById('e-category').addEventListener('change', function(){
+  if(this.value === '__add__'){
+    const name = prompt('新增類別名稱：');
+    if(name && name.trim()){
+      categories.push(name.trim());
+      saveCategories();
+      renderCategorySelect();
+      document.getElementById('e-category').value = name.trim();
+    } else {
+      this.value = categories[0] || '';
+    }
+  }
+});
+document.getElementById('e-payment').addEventListener('change', function(){
+  if(this.value === '__add__'){
+    const name = prompt('新增付款方式：');
+    if(name && name.trim()){
+      payments.push(name.trim());
+      savePayments();
+      renderPaymentSelect();
+      document.getElementById('e-payment').value = name.trim();
+    } else {
+      this.value = payments[0] || '';
+    }
+  }
+});
+
+document.getElementById('saveExpenseBtn').addEventListener('click', ()=>{
+  const amount = parseFloat(document.getElementById('e-amount').value);
+  if(!amount || amount<=0){ showToast('請輸入金額'); return; }
+  const exp = {
+    id: Date.now().toString(),
+    date: document.getElementById('e-date').value || todayStr(),
+    category: document.getElementById('e-category').value,
+    amount,
+    payment: document.getElementById('e-payment').value,
+    note: document.getElementById('e-note').value.trim(),
+  };
+  expenses.unshift(exp);
+  saveExpenses();
+  syncExpenseToCloud(exp);
+  expenseFormCard.classList.remove('show');
+  renderCategoryChips();
+  renderExpenses();
+  showToast('已新增支出，同步中...');
+});
+
+function deleteExpense(id){
+  expenses = expenses.filter(e=>e.id!==id);
+  saveExpenses();
+  renderExpenses();
+}
+
+function renderCategoryChips(){
+  const row = document.getElementById('catChipRow');
+  const cats = ['全部', ...categories];
+  row.innerHTML = cats.map(c=>`<span class="chip ${c===activeCategory?'active':''}" data-cat="${c}">${c}</span>`).join('');
+  row.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      activeCategory = chip.dataset.cat;
+      renderCategoryChips();
+      renderExpenses();
+    });
+  });
+}
+
+function renderExpenses(){
+  const wrap = document.getElementById('expenseListWrap');
+  const emptyEl = document.getElementById('moneyEmpty');
+  const filtered = activeCategory==='全部' ? expenses : expenses.filter(e=>e.category===activeCategory);
+
+  emptyEl.style.display = filtered.length===0 ? 'flex' : 'none';
+  wrap.innerHTML = '';
+
+  const now = new Date();
+  const ym = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  const monthSum = expenses.filter(e=> e.date && e.date.startsWith(ym) && (activeCategory==='全部'||e.category===activeCategory))
+    .reduce((s,e)=>s+Number(e.amount),0);
+  document.getElementById('monthTotal').textContent = '$' + monthSum.toLocaleString();
+  document.getElementById('monthLabel').textContent = `${now.getMonth()+1}月支出${activeCategory==='全部'?'':'（'+activeCategory+'）'}`;
+
+  const byDate = {};
+  filtered.forEach(e=>{ (byDate[e.date] = byDate[e.date]||[]).push(e); });
+  const dates = Object.keys(byDate).sort().reverse();
+
+  dates.forEach(date=>{
+    const label = document.createElement('div');
+    label.className = 'date-label';
+    label.textContent = date === todayStr() ? '今天' : date;
+    wrap.appendChild(label);
+
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+    byDate[date].forEach(e=>{
+      const row = document.createElement('div');
+      row.className = 'expense-row';
+      row.innerHTML = `
+        <div class="expense-left">
+          <div class="expense-icon">💸</div>
+          <div class="expense-info">
+            <div class="name"></div>
+            <div class="meta"></div>
+          </div>
+        </div>
+        <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn del-exp-btn">✕</button></div>
+      `;
+      row.querySelector('.name').textContent = e.note || e.category;
+      row.querySelector('.meta').textContent = `${e.category} · ${e.payment}`;
+      row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
+      row.querySelector('.del-exp-btn').addEventListener('click', ()=>deleteExpense(e.id));
+      card.appendChild(row);
+    });
+    wrap.appendChild(card);
+  });
+}
+
+document.getElementById('cameraBtn').addEventListener('click', ()=>{
+  document.getElementById('cameraInput').click();
+});
+document.getElementById('cameraInput').addEventListener('change', function(){
+  if(this.files && this.files[0]){
+    showToast('已拍照，請手動確認金額後儲存（自動辨識功能開發中）');
+    document.getElementById('e-date').value = todayStr();
+    renderCategorySelect();
+    renderPaymentSelect();
+    expenseFormCard.classList.add('show');
+    expenseFormCard.scrollIntoView({behavior:'smooth'});
+  }
+});
+
+/* ============ 待辦事項 ============ */
+let todos = JSON.parse(localStorage.getItem(STORAGE_TODOS) || '[]');
+function saveTodos(){ localStorage.setItem(STORAGE_TODOS, JSON.stringify(todos)); }
+
+const todoFormCard = document.getElementById('todoFormCard');
+document.getElementById('openTodoFormBtn').addEventListener('click', ()=>{
+  document.getElementById('t-name').value='';
+  document.getElementById('t-priority').value='normal';
+  document.getElementById('t-due').value='';
+  todoFormCard.classList.add('show');
+});
+document.getElementById('closeTodoFormBtn').addEventListener('click', ()=> todoFormCard.classList.remove('show'));
+document.getElementById('saveTodoBtn').addEventListener('click', ()=>{
+  const name = document.getElementById('t-name').value.trim();
+  if(!name) return;
+  todos.unshift({
+    id: Date.now().toString(),
+    name,
+    priority: document.getElementById('t-priority').value,
+    due: document.getElementById('t-due').value || null,
+    done: false,
+  });
+  saveTodos();
+  todoFormCard.classList.remove('show');
+  renderTodos();
+  renderReminders();
+  showToast('已新增待辦事項');
+});
+function toggleTodo(id){
+  todos = todos.map(t=> t.id===id ? {...t, done:!t.done} : t);
+  saveTodos();
+  renderTodos();
+  renderReminders();
+}
+function deleteTodo(id){
+  todos = todos.filter(t=>t.id!==id);
+  saveTodos();
+  renderTodos();
+  renderReminders();
+}
+function renderTodos(){
+  const listEl = document.getElementById('todoList');
+  const emptyEl = document.getElementById('todoEmpty');
+  const badge = document.getElementById('todoBadge');
+  listEl.innerHTML = '';
+  emptyEl.style.display = todos.length===0 ? 'flex' : 'none';
+
+  const sorted = [...todos].sort((a,b)=>{
+    if(a.done !== b.done) return a.done ? 1 : -1;
+    if(a.priority !== b.priority) return a.priority==='high' ? -1 : 1;
+    return 0;
+  });
+
+  sorted.forEach(t=>{
+    const row = document.createElement('div');
+    row.className = 'todo-row' + (t.done ? ' done' : '');
+    row.innerHTML = `
+      <div class="checkbox ${t.done?'on':''}">${t.done?'✓':''}</div>
+      <div style="flex:1;">
+        <div class="todo-name"></div>
+        ${t.due ? '<div class="todo-due"></div>' : ''}
+      </div>
+      <span class="pri-tag ${t.priority==='high'?'pri-high':'pri-normal'}">${t.priority==='high'?'急':'普通'}</span>
+      <button class="icon-btn del-todo-btn">✕</button>
+    `;
+    row.querySelector('.todo-name').textContent = t.name;
+    if(t.due) row.querySelector('.todo-due').textContent = '到期：'+t.due;
+    row.querySelector('.checkbox').addEventListener('click', ()=>toggleTodo(t.id));
+    row.querySelector('.del-todo-btn').addEventListener('click', ()=>deleteTodo(t.id));
+    listEl.appendChild(row);
+  });
+
+  const pendingCount = todos.filter(t=>!t.done).length;
+  if(pendingCount>0){ badge.style.display='flex'; badge.textContent=pendingCount; }
+  else { badge.style.display='none'; }
+}
+
+/* ============ 頂端提醒橫幅 ============ */
+function renderReminders(){
+  const wrap = document.getElementById('reminderWrap');
+  wrap.innerHTML = '';
+  const today = todayStr();
+  const overdue = todos.filter(t=>!t.done && t.due && t.due < today);
+  const dueToday = todos.filter(t=>!t.done && t.due && t.due === today);
+
+  overdue.forEach(t=>{
+    const el = document.createElement('div');
+    el.className = 'reminder-banner';
+    el.innerHTML = `⚠️ <span><b>已逾期：</b>${t.name}</span>`;
+    el.addEventListener('click', ()=>{
+      document.querySelector('.bt-item[data-tab="todo"]').click();
+    });
+    wrap.appendChild(el);
+  });
+  dueToday.forEach(t=>{
+    const el = document.createElement('div');
+    el.className = 'reminder-banner today';
+    el.innerHTML = `🔔 <span><b>今天到期：</b>${t.name}</span>`;
+    el.addEventListener('click', ()=>{
+      document.querySelector('.bt-item[data-tab="todo"]').click();
+    });
+    wrap.appendChild(el);
+  });
+}
+
+/* ============ 初始化 ============ */
 renderRecipes();
 renderShopping();
+renderCategoryChips();
+renderExpenses();
+renderTodos();
+renderReminders();
 </script>
 </body>
 </html>
