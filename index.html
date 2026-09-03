@@ -238,7 +238,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.6</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.7</button></h1>
       <p class="subtitle" id="subtitleText">烹煮方式 · 時間 · 採買清單</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -453,6 +453,14 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v2.7',
+    date: '2026-09-03',
+    changes: [
+      '拍照辨識前先做圖片前處理（提高解析度、灰階化、加強對比），改善辨識準確度',
+      '備註欄位改為可自動增高，不再截斷辨識出的完整內容',
+    ],
+  },
   {
     version: 'v2.6',
     date: '2026-09-03',
@@ -820,7 +828,9 @@ document.getElementById('openExpenseFormBtn').addEventListener('click', ()=>{
   document.getElementById('expenseFormTitle').textContent = '新增支出';
   document.getElementById('e-date').value = todayStr();
   document.getElementById('e-amount').value = '';
-  document.getElementById('e-note').value = '';
+  const noteEl = document.getElementById('e-note');
+  noteEl.value = '';
+  noteEl.style.height = '';
   renderCategorySelect();
   renderPaymentSelect();
   expenseFormCard.classList.add('show');
@@ -841,7 +851,9 @@ function editExpense(id){
   document.getElementById('e-category').value = exp.category;
   document.getElementById('e-amount').value = exp.amount;
   document.getElementById('e-payment').value = exp.payment;
-  document.getElementById('e-note').value = exp.note || '';
+  const noteEl = document.getElementById('e-note');
+  noteEl.value = exp.note || '';
+  autoGrowTextarea(noteEl);
   expenseFormCard.classList.add('show');
   expenseFormCard.scrollIntoView({behavior:'smooth', block:'start'});
 }
@@ -1020,6 +1032,57 @@ function compressImageToBase64(file, maxWidth){
   });
 }
 
+// 專門給OCR用的前處理：提高解析度、轉灰階、加強對比，PNG無損輸出，改善辨識準確度
+function preprocessImageForOCR(file, maxWidth){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = (e)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        const scale = Math.min(1, maxWidth / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+
+        const imgData = ctx.getImageData(0, 0, w, h);
+        const d = imgData.data;
+        let min=255, max=0;
+        // 先算灰階值的範圍，用來做對比拉伸
+        const gray = new Uint8ClampedArray(w*h);
+        for(let i=0; i<d.length; i+=4){
+          const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
+          gray[i/4] = g;
+          if(g<min) min=g;
+          if(g>max) max=g;
+        }
+        const range = Math.max(1, max-min);
+        for(let i=0; i<d.length; i+=4){
+          let g = gray[i/4];
+          g = (g - min) / range * 255; // 對比拉伸
+          d[i] = d[i+1] = d[i+2] = g;
+        }
+        ctx.putImageData(imgData, 0, 0);
+
+        const dataUrl = canvas.toDataURL('image/png');
+        resolve(dataUrl);
+      };
+      img.onerror = reject;
+      img.src = e.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+function autoGrowTextarea(el){
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+document.getElementById('e-note').addEventListener('input', function(){ autoGrowTextarea(this); });
+
 function cleanOcrText(text){
   // Tesseract辨識中文常會在每個字中間插入多餘空白，這裡把它清掉
   let cleaned = text;
@@ -1062,8 +1125,7 @@ document.getElementById('cameraInput').addEventListener('change', async function
 
   showToast('辨識中，第一次使用需要下載辨識資料，請稍候...');
   try {
-    const base64 = await compressImageToBase64(file, 1200);
-    const imgSrc = 'data:image/jpeg;base64,' + base64;
+    const imgSrc = await preprocessImageForOCR(file, 1800);
 
     const result = await Tesseract.recognize(imgSrc, 'chi_tra+eng', {
       logger: m=>{
@@ -1088,7 +1150,9 @@ document.getElementById('cameraInput').addEventListener('change', async function
     } else {
       const guess = guessAmountFromText(text);
       document.getElementById('e-amount').value = guess;
-      document.getElementById('e-note').value = text.replace(/\n+/g,' ').trim().slice(0,300);
+      const noteEl = document.getElementById('e-note');
+      noteEl.value = text.replace(/\n+/g,' ').trim();
+      autoGrowTextarea(noteEl);
       showToast('辨識完成，請確認金額後儲存');
     }
     expenseFormCard.classList.add('show');
