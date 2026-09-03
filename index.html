@@ -238,7 +238,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.9</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.0</button></h1>
       <p class="subtitle" id="subtitleText">烹煮方式 · 時間 · 採買清單</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -454,6 +454,14 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v3.0',
+    date: '2026-09-03',
+    changes: [
+      '修正金額誤判：商品描述文字（如「小結骨」）誤觸關鍵字比對，導致抓到商品重量而非總金額',
+      '調整判斷順序，優先抓「$」開頭數字中最大值，關鍵字比對改為輔助',
+    ],
+  },
   {
     version: 'v2.9',
     date: '2026-09-03',
@@ -1114,7 +1122,14 @@ function cleanOcrText(text){
 }
 
 function guessAmountFromText(text){
-  // 優先找收據上常見的「總金額」標示關鍵字，容許OCR在中文字間插入空白
+  // 優先抓「$」開頭的數字，取最大值（收據金額通常都有錢字符號，且總金額通常是$數字裡最大的一個；
+  // 交易編號、商品重量(如200g)不會有$符號，可有效避開這類干擾）
+  const dollarNums = (text.match(/\$\s?[\d,]+(?:\.\d+)?/g) || [])
+    .map(s => parseFloat(s.replace(/[$,\s]/g,'')))
+    .filter(n => n > 0 && n < 1000000);
+  if(dollarNums.length > 0) return Math.max(...dollarNums);
+
+  // 完全沒有$符號時，才退回找「小計/合計/應付」等關鍵字附近的數字，容許OCR在中文字間插入空白
   const keywords = ['小計','小結','合計','總計','總金額','應付金額','應付','實付','實收','消費金額','信用卡','現金'];
   for (const kw of keywords){
     const fuzzyKw = kw.split('').join('\\s*');
@@ -1125,11 +1140,6 @@ function guessAmountFromText(text){
       if (n > 0 && n < 1000000) return n;
     }
   }
-  // 找不到關鍵字時，優先抓「$」開頭的數字（收據金額通常都有錢字符號，交易編號/日期不會有）
-  const dollarNums = (text.match(/\$\s?[\d,]+(?:\.\d+)?/g) || [])
-    .map(s => parseFloat(s.replace(/[$,\s]/g,'')))
-    .filter(n => n > 0 && n < 1000000);
-  if(dollarNums.length > 0) return Math.max(...dollarNums);
 
   // 最後備用：抓辨識出來的數字裡最大的那個（可能不準，需要人工確認）
   const nums = (text.match(/\d[\d,]*(\.\d+)?/g) || [])
