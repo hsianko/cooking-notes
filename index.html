@@ -238,7 +238,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.4</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.6</button></h1>
       <p class="subtitle" id="subtitleText">烹煮方式 · 時間 · 採買清單</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -347,7 +347,7 @@ textarea.field{ min-height:56px; resize:vertical; }
       <select class="field" id="e-payment"></select>
 
       <label class="field-label">備註（選填）</label>
-      <input class="field" id="e-note" placeholder="例如：貓咪飼料">
+      <textarea class="field" id="e-note" placeholder="例如：貓咪飼料" style="min-height:70px;"></textarea>
 
       <button class="save-btn" id="saveExpenseBtn">儲存</button>
     </div>
@@ -453,6 +453,22 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v2.6',
+    date: '2026-09-03',
+    changes: [
+      '金額判斷再加一層備援：找不到關鍵字時，優先抓「$」開頭的數字，比單純抓最大數字更準確',
+    ],
+  },
+  {
+    version: 'v2.5',
+    date: '2026-09-03',
+    changes: [
+      '改善拍照辨識金額判斷：優先抓「小計/合計/總計/應付」等關鍵字附近的數字，避免誤抓品項重量或交易編號',
+      '修正中文辨識常見的字元間多餘空白問題，讓關鍵字比對更準確',
+      '備註欄位改為可多行顯示，不再截斷收據內容',
+    ],
+  },
   {
     version: 'v2.4',
     date: '2026-09-03',
@@ -1004,12 +1020,39 @@ function compressImageToBase64(file, maxWidth){
   });
 }
 
+function cleanOcrText(text){
+  // Tesseract辨識中文常會在每個字中間插入多餘空白，這裡把它清掉
+  let cleaned = text;
+  for (let i=0; i<3; i++){
+    cleaned = cleaned.replace(/([\u4e00-\u9fff])[ \t]+(?=[\u4e00-\u9fff])/g, '$1');
+  }
+  return cleaned.replace(/[ \t]{2,}/g, ' ').trim();
+}
+
 function guessAmountFromText(text){
+  // 優先找收據上常見的「總金額」標示關鍵字，容許OCR在中文字間插入空白
+  const keywords = ['小計','小結','合計','總計','總金額','應付金額','應付','實付','實收','消費金額','信用卡','現金'];
+  for (const kw of keywords){
+    const fuzzyKw = kw.split('').join('\\s*');
+    const re = new RegExp(fuzzyKw + '[^\\d]{0,8}([\\d,]{1,9}(?:\\.\\d+)?)');
+    const m = text.match(re);
+    if (m){
+      const n = parseFloat(m[1].replace(/,/g,''));
+      if (n > 0 && n < 1000000) return n;
+    }
+  }
+  // 找不到關鍵字時，優先抓「$」開頭的數字（收據金額通常都有錢字符號，交易編號/日期不會有）
+  const dollarNums = (text.match(/\$\s?[\d,]+(?:\.\d+)?/g) || [])
+    .map(s => parseFloat(s.replace(/[$,\s]/g,'')))
+    .filter(n => n > 0 && n < 1000000);
+  if(dollarNums.length > 0) return Math.max(...dollarNums);
+
+  // 最後備用：抓辨識出來的數字裡最大的那個（可能不準，需要人工確認）
   const nums = (text.match(/\d[\d,]*(\.\d+)?/g) || [])
     .map(s => parseFloat(s.replace(/,/g,'')))
     .filter(n => n > 0 && n < 1000000);
   if(nums.length===0) return '';
-  return Math.max(...nums); // 收據金額通常是數字裡最大的那個
+  return Math.max(...nums);
 }
 
 document.getElementById('cameraInput').addEventListener('change', async function(){
@@ -1029,7 +1072,8 @@ document.getElementById('cameraInput').addEventListener('change', async function
         }
       }
     });
-    const text = result.data.text || '';
+    const rawText = result.data.text || '';
+    const text = cleanOcrText(rawText);
 
     editingExpenseId = null;
     document.getElementById('expenseFormTitle').textContent = '新增支出（拍照辨識）';
@@ -1044,7 +1088,7 @@ document.getElementById('cameraInput').addEventListener('change', async function
     } else {
       const guess = guessAmountFromText(text);
       document.getElementById('e-amount').value = guess;
-      document.getElementById('e-note').value = text.replace(/\n+/g,' ').trim().slice(0,80);
+      document.getElementById('e-note').value = text.replace(/\n+/g,' ').trim().slice(0,300);
       showToast('辨識完成，請確認金額後儲存');
     }
     expenseFormCard.classList.add('show');
