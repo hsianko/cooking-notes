@@ -238,7 +238,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.7</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.8</button></h1>
       <p class="subtitle" id="subtitleText">烹煮方式 · 時間 · 採買清單</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -453,6 +453,13 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v2.8',
+    date: '2026-09-03',
+    changes: [
+      '修正對比拉伸容易被雜亂背景（如反光、鐵網紋路）帶偏導致辨識更差的問題，改用百分位數拉伸較穩健',
+    ],
+  },
   {
     version: 'v2.7',
     date: '2026-09-03',
@@ -1049,19 +1056,24 @@ function preprocessImageForOCR(file, maxWidth){
 
         const imgData = ctx.getImageData(0, 0, w, h);
         const d = imgData.data;
-        let min=255, max=0;
-        // 先算灰階值的範圍，用來做對比拉伸
         const gray = new Uint8ClampedArray(w*h);
+        const hist = new Array(256).fill(0);
         for(let i=0; i<d.length; i+=4){
           const g = 0.299*d[i] + 0.587*d[i+1] + 0.114*d[i+2];
           gray[i/4] = g;
-          if(g<min) min=g;
-          if(g>max) max=g;
+          hist[Math.round(g)]++;
         }
-        const range = Math.max(1, max-min);
+        // 用百分位數（排除最暗/最亮各2%的雜訊像素，避免被背景極端值帶偏）取代單純min/max
+        const total = w*h;
+        let lo = 0, hi = 255, acc = 0;
+        for(let v=0; v<256; v++){ acc += hist[v]; if(acc >= total*0.02){ lo = v; break; } }
+        acc = 0;
+        for(let v=255; v>=0; v--){ acc += hist[v]; if(acc >= total*0.02){ hi = v; break; } }
+        const range = Math.max(1, hi-lo);
         for(let i=0; i<d.length; i+=4){
           let g = gray[i/4];
-          g = (g - min) / range * 255; // 對比拉伸
+          g = (g - lo) / range * 255;
+          if(g<0) g=0; if(g>255) g=255;
           d[i] = d[i+1] = d[i+2] = g;
         }
         ctx.putImageData(imgData, 0, 0);
