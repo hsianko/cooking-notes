@@ -230,6 +230,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 .pri-high{ background:var(--redSoft); color:#8A342C; }
 .pri-normal{ background:#EFE7D3; color:var(--sageDark); }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body>
 
@@ -237,7 +238,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.3</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v2.4</button></h1>
       <p class="subtitle" id="subtitleText">烹煮方式 · 時間 · 採買清單</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -452,6 +453,14 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v2.4',
+    date: '2026-09-03',
+    changes: [
+      '記帳拍照辨識改用手機本機辨識（不再透過雲端Drive），避免Google端限制導致失敗',
+      '第一次使用拍照辨識時，需要下載辨識資料，速度會比較慢',
+    ],
+  },
   {
     version: 'v2.3',
     date: '2026-09-01',
@@ -1008,14 +1017,19 @@ document.getElementById('cameraInput').addEventListener('change', async function
   this.value = '';
   if(!file) return;
 
-  showToast('辨識中，請稍候幾秒...');
+  showToast('辨識中，第一次使用需要下載辨識資料，請稍候...');
   try {
-    const base64 = await compressImageToBase64(file, 1000);
-    const res = await fetch(SHEET_API_URL, {
-      method:'POST',
-      body: JSON.stringify({ token: SHEET_TOKEN, type:'ocr', image: base64, mimeType:'image/jpeg' })
+    const base64 = await compressImageToBase64(file, 1200);
+    const imgSrc = 'data:image/jpeg;base64,' + base64;
+
+    const result = await Tesseract.recognize(imgSrc, 'chi_tra+eng', {
+      logger: m=>{
+        if(m.status === 'recognizing text'){
+          showToast('辨識中... ' + Math.round(m.progress*100) + '%');
+        }
+      }
     });
-    const data = await res.json();
+    const text = result.data.text || '';
 
     editingExpenseId = null;
     document.getElementById('expenseFormTitle').textContent = '新增支出（拍照辨識）';
@@ -1023,14 +1037,14 @@ document.getElementById('cameraInput').addEventListener('change', async function
     renderCategorySelect();
     renderPaymentSelect();
 
-    if(data.error){
-      showToast('辨識失敗，請手動輸入：' + data.error);
+    if(!text.trim()){
+      showToast('沒有辨識出文字，請手動輸入');
       document.getElementById('e-amount').value = '';
       document.getElementById('e-note').value = '';
     } else {
-      const guess = guessAmountFromText(data.text || '');
+      const guess = guessAmountFromText(text);
       document.getElementById('e-amount').value = guess;
-      document.getElementById('e-note').value = (data.text || '').replace(/\n+/g,' ').slice(0,80);
+      document.getElementById('e-note').value = text.replace(/\n+/g,' ').trim().slice(0,80);
       showToast('辨識完成，請確認金額後儲存');
     }
     expenseFormCard.classList.add('show');
