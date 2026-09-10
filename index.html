@@ -229,6 +229,47 @@ textarea.field{ min-height:56px; resize:vertical; }
 .pri-tag{ font-size:10px; padding:3px 8px; border-radius:20px; font-weight:600; flex-shrink:0; }
 .pri-high{ background:var(--redSoft); color:#8A342C; }
 .pri-normal{ background:#EFE7D3; color:var(--sageDark); }
+
+/* ===== 首頁 ===== */
+.greeting{ font-size:13px; color:var(--muted); margin:10px 0 0; }
+.greeting b{ color:var(--ink); font-family:'Fraunces',serif; font-weight:600; font-size:16px; }
+.section-card{
+  background:var(--card); border:1px solid var(--cardBorder); border-radius:16px;
+  padding:16px; margin-bottom:14px; box-shadow:0 1px 6px rgba(59,47,34,0.04); cursor:pointer;
+}
+.sc-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.sc-title{ display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-weight:600; font-size:15.5px; }
+.sc-title .emoji{ font-size:17px; }
+.sc-link{ font-size:11.5px; color:var(--rust); font-weight:600; }
+.recipe-preview{ display:flex; align-items:center; gap:10px; }
+.recipe-thumb{ width:44px; height:44px; border-radius:11px; background:var(--rustSoft); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
+.recipe-info .name{ font-weight:600; font-size:14px; }
+.recipe-info .meta{ font-size:11.5px; color:var(--muted); margin-top:2px; }
+.shop-chip-row{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:2px; }
+.shop-chip{ font-size:11.5px; padding:5px 11px; border-radius:20px; background:#EFE7D3; color:var(--sageDark); }
+.home-summary{ font-size:12.5px; color:var(--muted); margin:0 0 10px; }
+.home-summary b{ color:var(--sageDark); font-family:'IBM Plex Mono',monospace; }
+.money-row{ display:flex; justify-content:space-between; align-items:baseline; }
+.money-amt{ font-family:'IBM Plex Mono',monospace; font-size:26px; font-weight:700; color:var(--ink); }
+.money-sub{ font-size:11.5px; color:var(--muted); margin-top:4px; }
+.money-cats{ display:flex; gap:6px; margin-top:10px; }
+.money-cat-mini{ flex:1; background:#FBF6EA; border-radius:8px; padding:8px; text-align:center; }
+.money-cat-mini .n{ font-size:10.5px; color:var(--muted); }
+.money-cat-mini .v{ font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; margin-top:2px; }
+.todo-mini-row{ display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid var(--cardBorder); }
+.todo-mini-row:last-child{ border-bottom:none; }
+.todo-dot{ width:7px; height:7px; border-radius:50%; flex-shrink:0; }
+.todo-dot.high{ background:var(--red); }
+.todo-dot.normal{ background:var(--sage); }
+.todo-mini-name{ flex:1; font-size:13px; }
+.todo-mini-due{ font-size:10.5px; color:var(--red); font-family:'IBM Plex Mono',monospace; }
+.todo-mini-due.today{ color:var(--orange); }
+.todo-mini-due.none{ color:var(--muted); }
+.qa-btn{
+  padding:10px; border-radius:10px; border:1.5px dashed var(--rust);
+  background:var(--rustSoft); color:var(--rust); font-size:12.5px; font-weight:600;
+  text-align:center; margin-top:4px; cursor:pointer;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
@@ -238,8 +279,8 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.0</button></h1>
-      <p class="subtitle" id="subtitleText">烹煮方式 · 時間 · 採買清單</p>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.1</button></h1>
+      <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
   </div>
@@ -249,8 +290,43 @@ textarea.field{ min-height:56px; resize:vertical; }
 
 <div class="body-wrap">
 
+  <!-- 首頁 -->
+  <section class="tabpanel active" id="home">
+    <div class="section-card" id="homeTodoCard">
+      <div class="sc-head">
+        <span class="sc-title"><span class="emoji">✅</span>待辦事項</span>
+        <span class="sc-link">查看全部 ›</span>
+      </div>
+      <div id="homeTodoList"></div>
+    </div>
+
+    <div class="section-card" id="homeMoneyCard">
+      <div class="sc-head">
+        <span class="sc-title"><span class="emoji">💰</span>本月支出</span>
+        <span class="sc-link">查看明細 ›</span>
+      </div>
+      <div id="homeMoneyBody"></div>
+    </div>
+
+    <div class="section-card" id="homeRecipeCard">
+      <div class="sc-head">
+        <span class="sc-title"><span class="emoji">🍳</span>料理紀錄</span>
+        <span class="sc-link">查看全部 ›</span>
+      </div>
+      <div id="homeRecipeBody"></div>
+    </div>
+
+    <div class="section-card" id="homeShopCard">
+      <div class="sc-head">
+        <span class="sc-title"><span class="emoji">🧺</span>採買清單</span>
+        <span class="sc-link">查看全部 ›</span>
+      </div>
+      <div id="homeShopBody"></div>
+    </div>
+  </section>
+
   <!-- 料理紀錄 -->
-  <section class="tabpanel active" id="recipes">
+  <section class="tabpanel" id="recipes">
     <button class="add-big-btn" id="openFormBtn">＋ 新增料理紀錄</button>
 
     <div class="form-card" id="formCard">
@@ -398,7 +474,8 @@ textarea.field{ min-height:56px; resize:vertical; }
 </div>
 
 <div class="bottom-bar" id="bottomBar">
-  <button class="bt-item active" data-tab="recipes"><span class="icon">🍳</span>料理</button>
+  <button class="bt-item active" data-tab="home"><span class="icon">🏠</span>首頁</button>
+  <button class="bt-item" data-tab="recipes"><span class="icon">🍳</span>料理</button>
   <button class="bt-item" data-tab="shopping"><span class="icon">🧺</span>採買<span class="bt-badge" id="shopBadge" style="display:none;">0</span></button>
   <button class="bt-item" data-tab="money"><span class="icon">💰</span>記帳</button>
   <button class="bt-item" data-tab="todo"><span class="icon">✅</span>待辦<span class="bt-badge" id="todoBadge" style="display:none;">0</span></button>
@@ -454,6 +531,14 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v3.1',
+    date: '2026-09-04',
+    changes: [
+      '新增首頁總覽分頁，放在第一個分頁，一次看到待辦、本月支出、最新料理、採買清單狀況',
+      '首頁卡片可直接點擊整張跳轉到對應分頁',
+    ],
+  },
   {
     version: 'v3.0',
     date: '2026-09-03',
@@ -594,6 +679,7 @@ verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.class
 
 /* ============ 底部分頁 ============ */
 const subtitles = {
+  home: '今天也要好好過生活',
   recipes: '烹煮方式 · 時間 · 採買清單',
   shopping: '烹煮方式 · 時間 · 採買清單',
   money: '記錄每一筆生活支出',
@@ -754,6 +840,7 @@ function renderRecipes(){
     }
     listEl.appendChild(card);
   });
+  renderHome();
 }
 
 /* ============ 採買清單 ============ */
@@ -811,6 +898,7 @@ function renderShopping(){
     row.querySelector('.del-item-btn').addEventListener('click', ()=>deleteItem(item.id));
     listEl.appendChild(row);
   });
+  renderHome();
 }
 
 /* ============ 記帳 ============ */
@@ -1027,6 +1115,7 @@ function renderExpenses(){
     });
     wrap.appendChild(card);
   });
+  renderHome();
 }
 
 document.getElementById('cameraBtn').addEventListener('click', ()=>{
@@ -1356,6 +1445,7 @@ function renderTodos(){
   const pendingCount = todos.filter(t=>!t.done).length;
   if(pendingCount>0){ badge.style.display='flex'; badge.textContent=pendingCount; }
   else { badge.style.display='none'; }
+  renderHome();
 }
 
 /* ============ 頂端提醒橫幅 ============ */
@@ -1386,6 +1476,115 @@ function renderReminders(){
   });
 }
 
+/* ============ 首頁 ============ */
+function goTab(tab){
+  document.querySelector('.bt-item[data-tab="'+tab+'"]').click();
+}
+document.getElementById('homeTodoCard').addEventListener('click', ()=>goTab('todo'));
+document.getElementById('homeMoneyCard').addEventListener('click', ()=>goTab('money'));
+document.getElementById('homeRecipeCard').addEventListener('click', (e)=>{
+  if(e.target.closest('.qa-btn')) return; // 快速按鈕另外處理，不要跟卡片本身的跳轉衝突
+  goTab('recipes');
+});
+document.getElementById('homeShopCard').addEventListener('click', ()=>goTab('shopping'));
+
+function renderHome(){
+  // 待辦：優先顯示逾期/今天到期，不足3筆再補未完成的一般待辦
+  const today = todayStr();
+  const overdue = todos.filter(t=>!t.done && t.due && t.due < today);
+  const dueToday = todos.filter(t=>!t.done && t.due && t.due === today);
+  const others = todos.filter(t=>!t.done && !(t.due && t.due<=today));
+  const todoPreview = [...overdue, ...dueToday, ...others].slice(0,3);
+
+  const todoListEl = document.getElementById('homeTodoList');
+  if(todoPreview.length===0){
+    todoListEl.innerHTML = '<p class="home-summary" style="margin:0;">目前沒有待辦事項 🎉</p>';
+  } else {
+    todoListEl.innerHTML = todoPreview.map(t=>{
+      let dueLabel = '未設期限', dueCls = 'none';
+      if(t.due && t.due < today){ dueLabel = '已逾期'; dueCls = ''; }
+      else if(t.due && t.due === today){ dueLabel = '今天到期'; dueCls = 'today'; }
+      else if(t.due){ dueLabel = t.due; dueCls = 'none'; }
+      return `<div class="todo-mini-row">
+        <span class="todo-dot ${t.priority==='high'?'high':'normal'}"></span>
+        <span class="todo-mini-name">${t.name}</span>
+        <span class="todo-mini-due ${dueCls}">${dueLabel}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // 記帳：本月總額 + 依類別拆分
+  const ym = todayStr().slice(0,7);
+  const monthExpenses = expenses.filter(e=>e.date && e.date.startsWith(ym));
+  const total = monthExpenses.reduce((s,e)=>s+Number(e.amount),0);
+  const byCat = {};
+  monthExpenses.forEach(e=>{ byCat[e.category] = (byCat[e.category]||0) + Number(e.amount); });
+  const topCats = Object.entries(byCat).sort((a,b)=>b[1]-a[1]).slice(0,3);
+
+  const moneyBody = document.getElementById('homeMoneyBody');
+  const monthNum = new Date().getMonth()+1;
+  if(monthExpenses.length===0){
+    moneyBody.innerHTML = `<p class="home-summary" style="margin:0;">${monthNum}月還沒有記帳紀錄</p>`;
+  } else {
+    moneyBody.innerHTML = `
+      <div class="money-row">
+        <span class="money-amt">$${total.toLocaleString()}</span>
+        <span class="money-sub">${monthNum}月支出</span>
+      </div>
+      <div class="money-cats">
+        ${topCats.map(([cat,amt])=>`<div class="money-cat-mini"><div class="n">${cat}</div><div class="v">$${amt.toLocaleString()}</div></div>`).join('')}
+      </div>
+    `;
+  }
+
+  // 料理：最近一筆
+  const recipeBody = document.getElementById('homeRecipeBody');
+  if(recipes.length===0){
+    recipeBody.innerHTML = `
+      <p class="home-summary" style="margin:0 0 4px;">還沒有任何料理紀錄</p>
+      <div class="qa-btn" id="homeAddRecipeBtn">＋ 新增第一道料理</div>
+    `;
+  } else {
+    const r = recipes[0];
+    const metaParts = [r.tool];
+    if(r.mode) metaParts.push(r.mode);
+    if(r.time) metaParts.push(r.time);
+    recipeBody.innerHTML = `
+      <div class="recipe-preview">
+        <div class="recipe-thumb">🍽️</div>
+        <div class="recipe-info">
+          <div class="name">最近新增：${r.name}</div>
+          <div class="meta">${metaParts.join(' · ')}</div>
+        </div>
+      </div>
+      <div class="qa-btn" id="homeAddRecipeBtn">＋ 新增今天煮的菜</div>
+    `;
+  }
+  const addRecipeBtn = document.getElementById('homeAddRecipeBtn');
+  if(addRecipeBtn){
+    addRecipeBtn.addEventListener('click', (e)=>{
+      e.stopPropagation();
+      goTab('recipes');
+      setTimeout(()=> document.getElementById('openFormBtn').click(), 250);
+    });
+  }
+
+  // 採買：未購買項目
+  const shopBody = document.getElementById('homeShopBody');
+  const unchecked = shopping.filter(i=>!i.checked);
+  if(unchecked.length===0){
+    shopBody.innerHTML = '<p class="home-summary" style="margin:0;">採買清單是空的，暫時不用買東西 👍</p>';
+  } else {
+    shopBody.innerHTML = `
+      <p class="home-summary">還有 <b>${unchecked.length}</b> 項還沒買：</p>
+      <div class="shop-chip-row">
+        ${unchecked.slice(0,6).map(i=>`<span class="shop-chip">${i.name}</span>`).join('')}
+        ${unchecked.length>6 ? `<span class="shop-chip">+${unchecked.length-6}</span>` : ''}
+      </div>
+    `;
+  }
+}
+
 /* ============ 初始化 ============ */
 renderRecipes();
 renderShopping();
@@ -1393,6 +1592,7 @@ renderCategoryChips();
 renderExpenses();
 renderTodos();
 renderReminders();
+renderHome();
 </script>
 </body>
 </html>
