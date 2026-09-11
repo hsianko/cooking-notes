@@ -205,6 +205,28 @@ textarea.field{ min-height:56px; resize:vertical; }
 .chip.active{ background:var(--sage); color:#fff; border-color:var(--sage); }
 .chip.add-chip{ color:var(--rust); border-color:var(--rust); background:var(--rustSoft); }
 
+.payer-row{ display:flex; gap:8px; }
+.payer-chip{
+  flex:1; padding:11px; border-radius:11px; border:1.5px solid var(--cardBorder);
+  background:#fff; text-align:center; font-size:13.5px; font-weight:600; color:var(--muted);
+  cursor:pointer;
+}
+.payer-chip.active{ border-color:var(--sage); background:#EFF3E9; color:var(--sageDark); }
+.payer-chip.active.partner{ border-color:var(--blue,#5C7FA6); background:#DDE6EE; color:#3E5B7A; }
+
+.payer-badge{ font-size:10px; padding:2px 7px; border-radius:20px; font-weight:600; margin-left:6px; }
+.payer-badge.me{ background:#EFF3E9; color:var(--sageDark); }
+.payer-badge.partner{ background:#DDE6EE; color:#3E5B7A; }
+
+.settle-card{ background:var(--card); border:1px solid var(--cardBorder); border-radius:14px; padding:16px; margin-bottom:14px; }
+.settle-title{ font-size:12px; color:var(--muted); margin-bottom:10px; font-weight:600; }
+.settle-row{ display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px; }
+.settle-row b{ font-family:'IBM Plex Mono',monospace; }
+.settle-result{
+  margin-top:8px; padding:10px 12px; background:#FBF6EA; border-radius:10px;
+  font-size:12.5px; color:var(--ink); text-align:center; font-weight:600;
+}
+
 .expense-row{ display:flex; justify-content:space-between; align-items:center; padding:12px 0; border-bottom:1px solid var(--cardBorder); }
 .expense-row:last-child{ border-bottom:none; }
 .expense-left{ display:flex; align-items:center; gap:10px; }
@@ -279,7 +301,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.1</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.2</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -402,6 +424,11 @@ textarea.field{ min-height:56px; resize:vertical; }
       <div class="chip-row" id="catChipRow"></div>
     </div>
 
+    <div class="settle-card">
+      <div class="settle-title">本月結算</div>
+      <div id="settleBody"></div>
+    </div>
+
     <button class="add-big-btn" id="openExpenseFormBtn">＋ 新增支出</button>
 
     <div class="form-card" id="expenseFormCard">
@@ -421,6 +448,12 @@ textarea.field{ min-height:56px; resize:vertical; }
 
       <label class="field-label">付款方式</label>
       <select class="field" id="e-payment"></select>
+
+      <label class="field-label">付款人</label>
+      <div class="payer-row">
+        <div class="payer-chip active" id="payerMeChip" data-payer="me">🧍 你</div>
+        <div class="payer-chip" id="payerPartnerChip" data-payer="partner">🧑‍🤝‍🧑 對方</div>
+      </div>
 
       <label class="field-label">備註（選填）</label>
       <textarea class="field" id="e-note" placeholder="例如：貓咪飼料" style="min-height:70px;"></textarea>
@@ -531,6 +564,14 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v3.2',
+    date: '2026-09-04',
+    changes: [
+      '記帳新增「付款人」欄位（你／對方），支出列表會顯示是誰付的',
+      '新增「本月結算」小卡片，自動算出平分後誰該轉多少錢給誰',
+    ],
+  },
   {
     version: 'v3.1',
     date: '2026-09-04',
@@ -918,7 +959,7 @@ function syncExpenseToCloud(exp){
     method:'POST',
     body: JSON.stringify({
       token: SHEET_TOKEN, date: exp.date, category: exp.category,
-      amount: exp.amount, payment: exp.payment, note: exp.note
+      amount: exp.amount, payment: exp.payment, payer: exp.payer, note: exp.note
     })
   }).catch(()=>{ /* 離線或連線失敗時，資料仍保留在本機，之後可再補送 */ });
 }
@@ -934,6 +975,17 @@ function syncRecipeToCloud(recipe){
   }).catch(()=>{ /* 離線或連線失敗時，資料仍保留在本機，之後可再補送 */ });
 }
 
+let selectedPayer = 'me';
+function setPayer(p){
+  selectedPayer = p;
+  document.getElementById('payerMeChip').classList.toggle('active', p==='me');
+  document.getElementById('payerMeChip').classList.remove('partner');
+  document.getElementById('payerPartnerChip').classList.toggle('active', p==='partner');
+  document.getElementById('payerPartnerChip').classList.toggle('partner', p==='partner');
+}
+document.getElementById('payerMeChip').addEventListener('click', ()=>setPayer('me'));
+document.getElementById('payerPartnerChip').addEventListener('click', ()=>setPayer('partner'));
+
 const expenseFormCard = document.getElementById('expenseFormCard');
 document.getElementById('openExpenseFormBtn').addEventListener('click', ()=>{
   editingExpenseId = null;
@@ -945,6 +997,7 @@ document.getElementById('openExpenseFormBtn').addEventListener('click', ()=>{
   noteEl.style.height = '';
   renderCategorySelect();
   renderPaymentSelect();
+  setPayer('me');
   expenseFormCard.classList.add('show');
 });
 document.getElementById('closeExpenseFormBtn').addEventListener('click', ()=>{
@@ -963,6 +1016,7 @@ function editExpense(id){
   document.getElementById('e-category').value = exp.category;
   document.getElementById('e-amount').value = exp.amount;
   document.getElementById('e-payment').value = exp.payment;
+  setPayer(exp.payer === 'partner' ? 'partner' : 'me');
   const noteEl = document.getElementById('e-note');
   noteEl.value = exp.note || '';
   autoGrowTextarea(noteEl);
@@ -1013,6 +1067,7 @@ document.getElementById('saveExpenseBtn').addEventListener('click', ()=>{
     category: document.getElementById('e-category').value,
     amount,
     payment: document.getElementById('e-payment').value,
+    payer: selectedPayer,
     note: document.getElementById('e-note').value.trim(),
   };
   if(editingExpenseId){
@@ -1081,6 +1136,25 @@ function renderExpenses(){
   document.getElementById('monthLabel').textContent = `${month}月支出${activeCategory==='全部'?'':'（'+activeCategory+'）'}`;
   document.getElementById('nextMonthBtn').disabled = monthOffset >= 0;
 
+  // 本月結算（不受類別篩選影響，統計整個月）
+  const monthAll = expenses.filter(e=> e.date && e.date.startsWith(ym));
+  const mePaid = monthAll.filter(e=>e.payer!=='partner').reduce((s,e)=>s+Number(e.amount),0);
+  const partnerPaid = monthAll.filter(e=>e.payer==='partner').reduce((s,e)=>s+Number(e.amount),0);
+  const settleBody = document.getElementById('settleBody');
+  if(monthAll.length===0){
+    settleBody.innerHTML = `<p style="font-size:12.5px; color:var(--muted); margin:0;">${month}月還沒有支出紀錄</p>`;
+  } else {
+    const diff = Math.round((mePaid - partnerPaid)/2);
+    let resultText = '打平，不用互相轉帳';
+    if(diff > 0) resultText = `若平分，對方需再轉給你 $${diff.toLocaleString()}`;
+    if(diff < 0) resultText = `若平分，你需再轉給對方 $${Math.abs(diff).toLocaleString()}`;
+    settleBody.innerHTML = `
+      <div class="settle-row"><span>你付了</span><b>$${mePaid.toLocaleString()}</b></div>
+      <div class="settle-row"><span>對方付了</span><b>$${partnerPaid.toLocaleString()}</b></div>
+      <div class="settle-result">${resultText}</div>
+    `;
+  }
+
   const byDate = {};
   filtered.forEach(e=>{ (byDate[e.date] = byDate[e.date]||[]).push(e); });
   const dates = Object.keys(byDate).sort().reverse();
@@ -1107,7 +1181,8 @@ function renderExpenses(){
         <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
       `;
       row.querySelector('.name').textContent = e.note || e.category;
-      row.querySelector('.meta').textContent = `${e.category} · ${e.payment}`;
+      const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?'對方付':'你付'}</span>` : '';
+      row.querySelector('.meta').innerHTML = `${e.category} · ${e.payment}${payerBadge}`;
       row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
       row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
       row.querySelector('.del-exp-btn').addEventListener('click', ()=>deleteExpense(e.id));
