@@ -92,10 +92,9 @@ h1{ font-family:'Fraunces',serif; font-weight:600; font-size:22px; margin:0; let
 }
 
 .form-card{
-  background:var(--card); border:1px solid var(--cardBorder); border-radius:14px;
-  padding:18px; margin-bottom:20px; box-shadow:0 2px 10px rgba(59,47,34,0.05); display:none;
+  background:var(--card); width:100%; max-width:640px; border-radius:18px 18px 0 0;
+  padding:20px 20px 28px; max-height:80vh; overflow-y:auto;
 }
-.form-card.show{ display:block; }
 .form-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
 .form-title{ font-family:'Fraunces',serif; font-weight:600; font-size:16px; }
 .icon-btn{ border:none; background:transparent; cursor:pointer; padding:4px; display:flex; align-items:center; }
@@ -109,6 +108,10 @@ textarea.field{ min-height:56px; resize:vertical; }
 .save-btn{
   width:100%; margin-top:18px; padding:12px; border-radius:10px; border:none;
   background:var(--sage); color:#fff; font-size:14px; font-weight:600; cursor:pointer;
+}
+.del-form-btn{
+  width:100%; margin-top:10px; padding:11px; border-radius:10px; border:1px solid var(--redSoft);
+  background:transparent; color:var(--red); font-size:13.5px; font-weight:600; cursor:pointer;
 }
 
 .empty{ display:flex; flex-direction:column; align-items:center; justify-content:center; padding:44px 20px; gap:10px; }
@@ -164,6 +167,13 @@ textarea.field{ min-height:56px; resize:vertical; }
   width:100%; margin-top:16px; padding:11px; border-radius:10px; border:1px solid var(--cardBorder);
   background:transparent; color:var(--muted); font-size:13px; cursor:pointer;
 }
+.checkout-block{ margin-top:18px; padding-top:14px; border-top:1px solid var(--cardBorder); }
+.checkout-summary{ display:flex; justify-content:space-between; align-items:baseline; font-size:13px; margin-bottom:10px; }
+.checkout-summary .amt{ font-family:'IBM Plex Mono',monospace; font-size:19px; font-weight:700; color:var(--ink); }
+.checkout-btn{
+  width:100%; padding:12px; border-radius:10px; border:none; background:var(--sage);
+  color:#fff; font-size:14px; font-weight:600; cursor:pointer; margin-bottom:8px;
+}
 
 .toast{
   position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
@@ -181,11 +191,13 @@ textarea.field{ min-height:56px; resize:vertical; }
 }
 .bt-item{
   flex:1; display:flex; flex-direction:column; align-items:center; gap:3px;
-  font-size:10.5px; color:var(--muted); position:relative; cursor:pointer; padding:4px 0;
+  font-size:12px; color:var(--muted); position:relative; cursor:pointer; padding:6px 0;
   border:none; background:transparent;
 }
-.bt-item .icon{ font-size:20px; }
-.bt-item.active{ color:var(--rust); font-weight:600; }
+.bt-item .icon{ display:none; }
+.bt-item .label-pill{ padding:4px 12px; border-radius:20px; }
+.bt-item.active{ color:var(--rust); font-weight:700; }
+.bt-item.active .label-pill{ background:var(--rustSoft); }
 .bt-badge{
   position:absolute; top:-2px; right:22%; background:var(--rust); color:#fff;
   font-size:9px; font-weight:700; border-radius:20px; min-width:15px; height:15px;
@@ -201,10 +213,15 @@ textarea.field{ min-height:56px; resize:vertical; }
 .month-nav-btn:disabled{ opacity:0.35; }
 .month-total .lbl{ font-size:12px; color:var(--muted); }
 .month-total .val{ font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:700; color:var(--ink); }
-.chip-row{ display:flex; gap:6px; flex-wrap:wrap; }
-.chip{ font-size:11.5px; padding:5px 12px; border-radius:20px; background:#fff; border:1px solid var(--cardBorder); color:var(--sageDark); cursor:pointer; }
-.chip.active{ background:var(--sage); color:#fff; border-color:var(--sage); }
-.chip.add-chip{ color:var(--rust); border-color:var(--rust); background:var(--rustSoft); }
+
+.cat-bar-row{ padding:8px 0; cursor:pointer; }
+.cat-bar-head{ display:flex; justify-content:space-between; align-items:baseline; font-size:13px; margin-bottom:5px; }
+.cat-bar-head .pct{ font-size:11px; color:var(--muted); margin-left:4px; }
+.cat-bar-head .amt{ font-family:'IBM Plex Mono',monospace; font-size:13px; }
+.cat-bar-track{ height:7px; background:var(--rustSoft); border-radius:0; }
+.cat-bar-fill{ height:100%; background:var(--sage); }
+.cat-bar-row.active .cat-bar-fill{ background:var(--rust); }
+.cat-bar-row.active .cat-bar-head{ font-weight:700; }
 
 .payer-row{ display:flex; gap:8px; }
 .payer-chip{
@@ -244,14 +261,23 @@ textarea.field{ min-height:56px; resize:vertical; }
 }
 
 /* ===== 待辦 ===== */
-.todo-row{ display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--cardBorder); }
+.todo-group{ margin-bottom:20px; }
+.todo-group-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:2px; }
+.todo-group-label{ font-size:11px; font-weight:700; letter-spacing:.1em; color:var(--rust); text-transform:uppercase; }
+.todo-group-count{ font-size:11px; color:var(--muted); }
+.todo-row{ display:flex; align-items:flex-start; gap:10px; padding:12px 0; border-bottom:1px solid var(--cardBorder); }
 .todo-row:last-child{ border-bottom:none; }
 .todo-row.done .todo-name{ text-decoration:line-through; color:var(--muted); }
 .todo-name{ flex:1; font-size:13.5px; }
 .todo-due{ font-size:10.5px; color:var(--muted); margin-top:2px; }
+.todo-link{
+  display:inline-block; margin-top:5px; font-size:11.5px; color:var(--rust);
+  border-bottom:1px solid var(--rustSoft); cursor:pointer;
+}
 .pri-tag{ font-size:10px; padding:3px 8px; border-radius:20px; font-weight:600; flex-shrink:0; }
 .pri-high{ background:var(--redSoft); color:#8A342C; }
 .pri-normal{ background:#EFE7D3; color:var(--sageDark); }
+.todo-group-empty{ font-size:12.5px; color:var(--muted); padding:9px 0; }
 
 /* ===== 首頁 ===== */
 .greeting{ font-size:13px; color:var(--muted); margin:10px 0 0; }
@@ -260,6 +286,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   background:var(--card); border:1px solid var(--cardBorder); border-radius:16px;
   padding:16px; margin-bottom:14px; box-shadow:0 1px 6px rgba(59,47,34,0.04); cursor:pointer;
 }
+.home-headline{ font-family:'Fraunces',serif; font-weight:700; font-size:20px; margin:2px 0 10px; }
 .sc-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
 .sc-title{ display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-weight:600; font-size:15.5px; }
 .sc-title .emoji{ font-size:17px; }
@@ -302,7 +329,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.3</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.4</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -320,6 +347,7 @@ textarea.field{ min-height:56px; resize:vertical; }
         <span class="sc-title"><span class="emoji">✅</span>待辦事項</span>
         <span class="sc-link">查看全部 ›</span>
       </div>
+      <div class="home-headline" id="homeTodoHeadline"></div>
       <div id="homeTodoList"></div>
     </div>
 
@@ -352,6 +380,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <section class="tabpanel" id="recipes">
     <button class="add-big-btn" id="openFormBtn">＋ 新增料理紀錄</button>
 
+    <div class="modal-overlay" id="formModal">
     <div class="form-card" id="formCard">
       <div class="form-head">
         <span class="form-title" id="formTitleText">新增料理紀錄</span>
@@ -385,6 +414,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 
       <button class="save-btn" id="saveBtn">儲存</button>
     </div>
+    </div>
 
     <div class="empty" id="recipesEmpty" style="display:none;">
       <div class="empty-icon">🍳</div>
@@ -408,7 +438,15 @@ textarea.field{ min-height:56px; resize:vertical; }
 
     <div class="list" id="shopList"></div>
 
-    <button class="clear-btn" id="clearBtn" style="display:none;">清除已購買項目</button>
+    <div class="checkout-block" id="checkoutBlock" style="display:none;">
+      <div class="checkout-summary">
+        <span id="checkoutCountText">已買 0 樣</span>
+      </div>
+      <label class="field-label" style="margin-top:0;">本次結帳總金額</label>
+      <input class="field" type="number" inputmode="numeric" id="checkoutAmount" placeholder="輸入這幾樣總共花了多少" style="margin-bottom:10px;">
+      <button class="checkout-btn" id="checkoutBtn">結帳 · 記成一筆支出</button>
+      <button class="clear-btn" id="clearBtn">只清除已買項目</button>
+    </div>
   </section>
 
   <!-- 記帳 -->
@@ -422,7 +460,7 @@ textarea.field{ min-height:56px; resize:vertical; }
         </div>
         <span class="val" id="monthTotal">$0</span>
       </div>
-      <div class="chip-row" id="catChipRow"></div>
+      <div id="catBarWrap"></div>
     </div>
 
     <div class="settle-card">
@@ -432,6 +470,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 
     <button class="add-big-btn" id="openExpenseFormBtn">＋ 新增支出</button>
 
+    <div class="modal-overlay" id="expenseFormModal">
     <div class="form-card" id="expenseFormCard">
       <div class="form-head">
         <span class="form-title" id="expenseFormTitle">新增支出</span>
@@ -452,7 +491,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 
       <label class="field-label">付款人</label>
       <div class="payer-row">
-        <div class="payer-chip active" id="payerMeChip" data-payer="me">🧍 你</div>
+        <div class="payer-chip active" id="payerMeChip" data-payer="me">🧍 自己</div>
         <div class="payer-chip" id="payerPartnerChip" data-payer="partner">🧑‍🤝‍🧑 對方</div>
       </div>
 
@@ -460,6 +499,7 @@ textarea.field{ min-height:56px; resize:vertical; }
       <textarea class="field" id="e-note" placeholder="例如：貓咪飼料" style="min-height:70px;"></textarea>
 
       <button class="save-btn" id="saveExpenseBtn">儲存</button>
+    </div>
     </div>
 
     <div class="empty" id="moneyEmpty" style="display:none;">
@@ -477,6 +517,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <section class="tabpanel" id="todo">
     <button class="add-big-btn" id="openTodoFormBtn">＋ 新增待辦事項</button>
 
+    <div class="modal-overlay" id="todoFormModal">
     <div class="form-card" id="todoFormCard">
       <div class="form-head">
         <span class="form-title" id="todoFormTitle">新增待辦事項</span>
@@ -494,7 +535,11 @@ textarea.field{ min-height:56px; resize:vertical; }
       <label class="field-label">到期日期（選填，設定後才會出現在頂端提醒）</label>
       <input class="field" type="date" id="t-due">
 
+      <label class="field-label">連結（選填）</label>
+      <select class="field" id="t-link"></select>
+
       <button class="save-btn" id="saveTodoBtn">儲存</button>
+    </div>
     </div>
 
     <div class="empty" id="todoEmpty" style="display:none;">
@@ -508,11 +553,11 @@ textarea.field{ min-height:56px; resize:vertical; }
 </div>
 
 <div class="bottom-bar" id="bottomBar">
-  <button class="bt-item active" data-tab="home"><span class="icon">🏠</span>首頁</button>
-  <button class="bt-item" data-tab="recipes"><span class="icon">🍳</span>料理</button>
-  <button class="bt-item" data-tab="shopping"><span class="icon">🧺</span>採買<span class="bt-badge" id="shopBadge" style="display:none;">0</span></button>
-  <button class="bt-item" data-tab="money"><span class="icon">💰</span>記帳</button>
-  <button class="bt-item" data-tab="todo"><span class="icon">✅</span>待辦<span class="bt-badge" id="todoBadge" style="display:none;">0</span></button>
+  <button class="bt-item active" data-tab="home"><span class="label-pill">首頁</span></button>
+  <button class="bt-item" data-tab="recipes"><span class="label-pill">料理</span></button>
+  <button class="bt-item" data-tab="shopping"><span class="label-pill">採買</span><span class="bt-badge" id="shopBadge" style="display:none;">0</span></button>
+  <button class="bt-item" data-tab="money"><span class="label-pill">記帳</span></button>
+  <button class="bt-item" data-tab="todo"><span class="label-pill">待辦</span><span class="bt-badge" id="todoBadge" style="display:none;">0</span></button>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -565,6 +610,19 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v3.4',
+    date: '2026-09-11',
+    changes: [
+      '新增/編輯表單改為由下往上滑出的彈窗形式（可點背景關閉）',
+      '記帳類別改用長條圖＋百分比呈現，點長條可篩選',
+      '付款人標籤文字改為「自己／對方」',
+      '採買清單新增「結帳」功能，可一鍵記成一筆支出（自動帶入上次用過的類別/付款方式）',
+      '待辦事項改為分組顯示（逾期／今天／之後／已完成），並新增「連結」欄位可連到料理或記帳頁',
+      '首頁待辦區塊加上「今天還有N件事要處理」提示',
+      '底部導覽列改為純文字＋圓角底色塊標示目前分頁，移除圖示',
+    ],
+  },
   {
     version: 'v3.3',
     date: '2026-09-11',
@@ -750,7 +808,7 @@ let shopping = JSON.parse(localStorage.getItem(STORAGE_SHOPPING) || '[]');
 function saveRecipes(){ localStorage.setItem(STORAGE_RECIPES, JSON.stringify(recipes)); }
 function saveShopping(){ localStorage.setItem(STORAGE_SHOPPING, JSON.stringify(shopping)); }
 
-const formCard = document.getElementById('formCard');
+const formCard = document.getElementById('formModal');
 let editingId = null;
 document.getElementById('openFormBtn').addEventListener('click', ()=>{
   editingId = null;
@@ -763,6 +821,7 @@ document.getElementById('closeFormBtn').addEventListener('click', ()=>{
   editingId = null;
   clearForm();
 });
+formCard.addEventListener('click', (e)=>{ if(e.target===formCard) document.getElementById('closeFormBtn').click(); });
 function clearForm(){
   document.getElementById('f-name').value='';
   document.getElementById('f-tool').value='氣炸鍋';
@@ -922,14 +981,16 @@ document.getElementById('clearBtn').addEventListener('click', ()=>{
 function renderShopping(){
   const listEl = document.getElementById('shopList');
   const emptyEl = document.getElementById('shoppingEmpty');
-  const clearBtn = document.getElementById('clearBtn');
+  const checkoutBlock = document.getElementById('checkoutBlock');
   const badge = document.getElementById('shopBadge');
   listEl.innerHTML = '';
   emptyEl.style.display = shopping.length===0 ? 'flex' : 'none';
   const uncheckedCount = shopping.filter(i=>!i.checked).length;
   if(uncheckedCount>0){ badge.style.display='flex'; badge.textContent=uncheckedCount; }
   else { badge.style.display='none'; }
-  clearBtn.style.display = shopping.some(i=>i.checked) ? 'block' : 'none';
+  const checkedItems = shopping.filter(i=>i.checked);
+  checkoutBlock.style.display = checkedItems.length>0 ? 'block' : 'none';
+  document.getElementById('checkoutCountText').textContent = `已買 ${checkedItems.length} 樣`;
   shopping.forEach(item=>{
     const row = document.createElement('div');
     row.className = 'shop-row' + (item.checked ? ' checked' : '');
@@ -950,6 +1011,34 @@ function renderShopping(){
   renderHome();
 }
 
+document.getElementById('checkoutBtn').addEventListener('click', ()=>{
+  const amount = parseFloat(document.getElementById('checkoutAmount').value);
+  if(!amount || amount<=0){ showToast('請輸入結帳總金額'); return; }
+  const checkedItems = shopping.filter(i=>i.checked);
+  const cat = (lastCategory && categories.includes(lastCategory)) ? lastCategory : (categories[0] || '用品');
+  const pay = (lastPayment && payments.includes(lastPayment)) ? lastPayment : (payments[0] || '現金');
+  const exp = {
+    id: Date.now().toString(),
+    date: todayStr(),
+    category: cat,
+    amount,
+    payment: pay,
+    payer: 'me',
+    note: '採買清單 ' + checkedItems.length + ' 樣',
+  };
+  expenses.unshift(exp);
+  saveExpenses();
+  syncExpenseToCloud(exp);
+  shopping = shopping.filter(i=>!i.checked);
+  saveShopping();
+  document.getElementById('checkoutAmount').value = '';
+  monthOffset = 0;
+  renderShopping();
+  renderExpenses();
+  showToast('已記一筆 $' + amount.toLocaleString() + '，同步中...');
+  document.querySelector('.bt-item[data-tab="money"]').click();
+});
+
 /* ============ 記帳 ============ */
 let expenses = JSON.parse(localStorage.getItem(STORAGE_EXPENSES) || '[]');
 let categories = JSON.parse(localStorage.getItem(STORAGE_CATEGORIES) || '["飼料","醫療","用品"]');
@@ -957,6 +1046,8 @@ let payments = JSON.parse(localStorage.getItem(STORAGE_PAYMENTS) || '["現金","
 let activeCategory = '全部';
 let monthOffset = 0; // 0=本月, -1=上月...
 let editingExpenseId = null;
+let lastCategory = localStorage.getItem('xiaorizi-last-category') || '';
+let lastPayment = localStorage.getItem('xiaorizi-last-payment') || '';
 
 function saveExpenses(){ localStorage.setItem(STORAGE_EXPENSES, JSON.stringify(expenses)); }
 function saveCategories(){ localStorage.setItem(STORAGE_CATEGORIES, JSON.stringify(categories)); }
@@ -994,7 +1085,7 @@ function setPayer(p){
 document.getElementById('payerMeChip').addEventListener('click', ()=>setPayer('me'));
 document.getElementById('payerPartnerChip').addEventListener('click', ()=>setPayer('partner'));
 
-const expenseFormCard = document.getElementById('expenseFormCard');
+const expenseFormCard = document.getElementById('expenseFormModal');
 document.getElementById('openExpenseFormBtn').addEventListener('click', ()=>{
   editingExpenseId = null;
   document.getElementById('expenseFormTitle').textContent = '新增支出';
@@ -1005,6 +1096,8 @@ document.getElementById('openExpenseFormBtn').addEventListener('click', ()=>{
   noteEl.style.height = '';
   renderCategorySelect();
   renderPaymentSelect();
+  if(lastCategory && categories.includes(lastCategory)) document.getElementById('e-category').value = lastCategory;
+  if(lastPayment && payments.includes(lastPayment)) document.getElementById('e-payment').value = lastPayment;
   setPayer('me');
   expenseFormCard.classList.add('show');
 });
@@ -1012,6 +1105,7 @@ document.getElementById('closeExpenseFormBtn').addEventListener('click', ()=>{
   expenseFormCard.classList.remove('show');
   editingExpenseId = null;
 });
+expenseFormCard.addEventListener('click', (e)=>{ if(e.target===expenseFormCard) document.getElementById('closeExpenseFormBtn').click(); });
 
 function editExpense(id){
   const exp = expenses.find(e=>e.id===id);
@@ -1088,6 +1182,10 @@ document.getElementById('saveExpenseBtn').addEventListener('click', ()=>{
     showToast('已新增支出，同步中...');
   }
   saveExpenses();
+  lastCategory = data.category;
+  lastPayment = data.payment;
+  localStorage.setItem('xiaorizi-last-category', lastCategory);
+  localStorage.setItem('xiaorizi-last-payment', lastPayment);
   editingExpenseId = null;
   expenseFormCard.classList.remove('show');
   renderCategoryChips();
@@ -1101,12 +1199,36 @@ function deleteExpense(id){
 }
 
 function renderCategoryChips(){
-  const row = document.getElementById('catChipRow');
-  const cats = ['全部', ...categories];
-  row.innerHTML = cats.map(c=>`<span class="chip ${c===activeCategory?'active':''}" data-cat="${c}">${c}</span>`).join('');
-  row.querySelectorAll('.chip').forEach(chip=>{
-    chip.addEventListener('click', ()=>{
-      activeCategory = chip.dataset.cat;
+  const wrap = document.getElementById('catBarWrap');
+  const { ym } = targetYm();
+  const monthAll = expenses.filter(e=> e.date && e.date.startsWith(ym));
+  const sums = {};
+  monthAll.forEach(e=>{ sums[e.category] = (sums[e.category]||0) + Number(e.amount); });
+  const total = monthAll.reduce((s,e)=>s+Number(e.amount),0);
+  const barColors = ['var(--rust)','var(--sage)','var(--orange)','var(--red)','var(--sageDark)'];
+  const cats = categories.filter(c=> sums[c] > 0).sort((a,b)=> sums[b]-sums[a]);
+
+  if(cats.length===0){
+    wrap.innerHTML = '';
+    return;
+  }
+  wrap.innerHTML = cats.map((c,i)=>{
+    const amt = sums[c];
+    const pct = total>0 ? Math.round(amt/total*100) : 0;
+    return `
+      <div class="cat-bar-row ${c===activeCategory?'active':''}" data-cat="${c}">
+        <div class="cat-bar-head">
+          <span>${c}<span class="pct">${pct}%</span></span>
+          <span class="amt">$${amt.toLocaleString()}</span>
+        </div>
+        <div class="cat-bar-track"><div class="cat-bar-fill" style="width:${pct}%; background:${barColors[i%barColors.length]};"></div></div>
+      </div>
+    `;
+  }).join('');
+  wrap.querySelectorAll('.cat-bar-row').forEach(row=>{
+    row.addEventListener('click', ()=>{
+      const c = row.dataset.cat;
+      activeCategory = (activeCategory === c) ? '全部' : c;
       renderCategoryChips();
       renderExpenses();
     });
@@ -1154,10 +1276,10 @@ function renderExpenses(){
   } else {
     const diff = Math.round((mePaid - partnerPaid)/2);
     let resultText = '打平，不用互相轉帳';
-    if(diff > 0) resultText = `若平分，對方需再轉給你 $${diff.toLocaleString()}`;
-    if(diff < 0) resultText = `若平分，你需再轉給對方 $${Math.abs(diff).toLocaleString()}`;
+    if(diff > 0) resultText = `若平分，對方需再轉給自己 $${diff.toLocaleString()}`;
+    if(diff < 0) resultText = `若平分，自己需再轉給對方 $${Math.abs(diff).toLocaleString()}`;
     settleBody.innerHTML = `
-      <div class="settle-row"><span>你付了</span><b>$${mePaid.toLocaleString()}</b></div>
+      <div class="settle-row"><span>自己付了</span><b>$${mePaid.toLocaleString()}</b></div>
       <div class="settle-row"><span>對方付了</span><b>$${partnerPaid.toLocaleString()}</b></div>
       <div class="settle-result">${resultText}</div>
     `;
@@ -1189,7 +1311,7 @@ function renderExpenses(){
         <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
       `;
       row.querySelector('.name').textContent = e.note || e.category;
-      const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?'對方付':'你付'}</span>` : '';
+      const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?'對方付':'自己付'}</span>` : '';
       row.querySelector('.meta').innerHTML = `${e.category} · ${e.payment}${payerBadge}`;
       row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
       row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
@@ -1198,6 +1320,7 @@ function renderExpenses(){
     });
     wrap.appendChild(card);
   });
+  renderCategoryChips();
   renderHome();
 }
 
@@ -1434,19 +1557,33 @@ let todos = JSON.parse(localStorage.getItem(STORAGE_TODOS) || '[]');
 let editingTodoId = null;
 function saveTodos(){ localStorage.setItem(STORAGE_TODOS, JSON.stringify(todos)); }
 
-const todoFormCard = document.getElementById('todoFormCard');
+function renderTodoLinkSelect(current){
+  const sel = document.getElementById('t-link');
+  const options = [
+    { v: '', label: '不連結' },
+    { v: 'shop', label: '採買清單' },
+    { v: 'money', label: '本月支出' },
+    ...recipes.map(r=>({ v: 'recipe:'+r.id, label: '料理 · '+r.name })),
+  ];
+  sel.innerHTML = options.map(o=>`<option value="${o.v}">${o.label}</option>`).join('');
+  sel.value = current || '';
+}
+
+const todoFormCard = document.getElementById('todoFormModal');
 document.getElementById('openTodoFormBtn').addEventListener('click', ()=>{
   editingTodoId = null;
   document.getElementById('todoFormTitle').textContent = '新增待辦事項';
   document.getElementById('t-name').value='';
   document.getElementById('t-priority').value='normal';
   document.getElementById('t-due').value='';
+  renderTodoLinkSelect('');
   todoFormCard.classList.add('show');
 });
 document.getElementById('closeTodoFormBtn').addEventListener('click', ()=>{
   todoFormCard.classList.remove('show');
   editingTodoId = null;
 });
+todoFormCard.addEventListener('click', (e)=>{ if(e.target===todoFormCard) document.getElementById('closeTodoFormBtn').click(); });
 function editTodo(id){
   const t = todos.find(x=>x.id===id);
   if(!t) return;
@@ -1455,6 +1592,7 @@ function editTodo(id){
   document.getElementById('t-name').value = t.name;
   document.getElementById('t-priority').value = t.priority;
   document.getElementById('t-due').value = t.due || '';
+  renderTodoLinkSelect(t.link || '');
   todoFormCard.classList.add('show');
   todoFormCard.scrollIntoView({behavior:'smooth', block:'start'});
 }
@@ -1465,6 +1603,7 @@ document.getElementById('saveTodoBtn').addEventListener('click', ()=>{
     name,
     priority: document.getElementById('t-priority').value,
     due: document.getElementById('t-due').value || null,
+    link: document.getElementById('t-link').value || null,
   };
   if(editingTodoId){
     todos = todos.map(t=> t.id===editingTodoId ? { ...t, ...data } : t);
@@ -1491,6 +1630,50 @@ function deleteTodo(id){
   renderTodos();
   renderReminders();
 }
+function todoLinkLabel(link){
+  if(!link) return null;
+  if(link === 'shop') return '採買清單';
+  if(link === 'money') return '本月支出';
+  if(link.startsWith('recipe:')){
+    const r = recipes.find(x=>x.id===link.slice(7));
+    return r ? ('料理 · ' + r.name) : null;
+  }
+  return null;
+}
+function todoLinkGo(link){
+  if(link === 'shop') goTab('shopping');
+  else if(link === 'money') goTab('money');
+  else if(link && link.startsWith('recipe:')) goTab('recipes');
+}
+
+function makeTodoRow(t){
+  const row = document.createElement('div');
+  row.className = 'todo-row' + (t.done ? ' done' : '');
+  const linkLabel = todoLinkLabel(t.link);
+  row.innerHTML = `
+    <div class="checkbox ${t.done?'on':''}">${t.done?'✓':''}</div>
+    <div style="flex:1;">
+      <div class="todo-name"></div>
+      ${t.due ? '<div class="todo-due"></div>' : ''}
+      ${linkLabel ? '<div class="todo-link"></div>' : ''}
+    </div>
+    <span class="pri-tag ${t.priority==='high'?'pri-high':'pri-normal'}">${t.priority==='high'?'急':'普通'}</span>
+    <button class="icon-btn edit-todo-btn">✏️</button>
+    <button class="icon-btn del-todo-btn">✕</button>
+  `;
+  row.querySelector('.todo-name').textContent = t.name;
+  if(t.due) row.querySelector('.todo-due').textContent = '到期：'+t.due;
+  if(linkLabel){
+    const linkEl = row.querySelector('.todo-link');
+    linkEl.textContent = linkLabel + ' →';
+    linkEl.addEventListener('click', ()=>todoLinkGo(t.link));
+  }
+  row.querySelector('.checkbox').addEventListener('click', ()=>toggleTodo(t.id));
+  row.querySelector('.edit-todo-btn').addEventListener('click', ()=>editTodo(t.id));
+  row.querySelector('.del-todo-btn').addEventListener('click', ()=>deleteTodo(t.id));
+  return row;
+}
+
 function renderTodos(){
   const listEl = document.getElementById('todoList');
   const emptyEl = document.getElementById('todoEmpty');
@@ -1498,32 +1681,38 @@ function renderTodos(){
   listEl.innerHTML = '';
   emptyEl.style.display = todos.length===0 ? 'flex' : 'none';
 
-  const sorted = [...todos].sort((a,b)=>{
-    if(a.done !== b.done) return a.done ? 1 : -1;
-    if(a.priority !== b.priority) return a.priority==='high' ? -1 : 1;
-    return 0;
-  });
+  const today = todayStr();
+  const overdue = todos.filter(t=>!t.done && t.due && t.due < today);
+  const dueToday = todos.filter(t=>!t.done && t.due && t.due === today);
+  const later = todos.filter(t=>!t.done && !(t.due && t.due <= today));
+  const done = todos.filter(t=>t.done);
 
-  sorted.forEach(t=>{
-    const row = document.createElement('div');
-    row.className = 'todo-row' + (t.done ? ' done' : '');
-    row.innerHTML = `
-      <div class="checkbox ${t.done?'on':''}">${t.done?'✓':''}</div>
-      <div style="flex:1;">
-        <div class="todo-name"></div>
-        ${t.due ? '<div class="todo-due"></div>' : ''}
-      </div>
-      <span class="pri-tag ${t.priority==='high'?'pri-high':'pri-normal'}">${t.priority==='high'?'急':'普通'}</span>
-      <button class="icon-btn edit-todo-btn">✏️</button>
-      <button class="icon-btn del-todo-btn">✕</button>
-    `;
-    row.querySelector('.todo-name').textContent = t.name;
-    if(t.due) row.querySelector('.todo-due').textContent = '到期：'+t.due;
-    row.querySelector('.checkbox').addEventListener('click', ()=>toggleTodo(t.id));
-    row.querySelector('.edit-todo-btn').addEventListener('click', ()=>editTodo(t.id));
-    row.querySelector('.del-todo-btn').addEventListener('click', ()=>deleteTodo(t.id));
-    listEl.appendChild(row);
-  });
+  const groups = [
+    { label: '逾期', items: overdue },
+    { label: '今天', items: dueToday },
+    { label: '之後', items: later },
+    { label: '已完成', items: done },
+  ];
+
+  if(todos.length>0){
+    groups.forEach(g=>{
+      const groupEl = document.createElement('div');
+      groupEl.className = 'todo-group';
+      const head = document.createElement('div');
+      head.className = 'todo-group-head';
+      head.innerHTML = `<span class="todo-group-label">${g.label}</span><span class="todo-group-count">${g.items.length}</span>`;
+      groupEl.appendChild(head);
+      if(g.items.length===0){
+        const empty = document.createElement('div');
+        empty.className = 'todo-group-empty';
+        empty.textContent = '沒有項目';
+        groupEl.appendChild(empty);
+      } else {
+        g.items.forEach(t=> groupEl.appendChild(makeTodoRow(t)));
+      }
+      listEl.appendChild(groupEl);
+    });
+  }
 
   const pendingCount = todos.filter(t=>!t.done).length;
   if(pendingCount>0){ badge.style.display='flex'; badge.textContent=pendingCount; }
@@ -1578,6 +1767,12 @@ function renderHome(){
   const dueToday = todos.filter(t=>!t.done && t.due && t.due === today);
   const others = todos.filter(t=>!t.done && !(t.due && t.due<=today));
   const todoPreview = [...overdue, ...dueToday, ...others].slice(0,3);
+
+  const headlineEl = document.getElementById('homeTodoHeadline');
+  const urgentCount = overdue.length + dueToday.length;
+  headlineEl.textContent = urgentCount>0
+    ? `今天還有 ${urgentCount} 件事要處理`
+    : (others.length>0 ? '今天沒有急事，還有一些待辦' : '今天沒有待辦，休息一下');
 
   const todoListEl = document.getElementById('homeTodoList');
   if(todoPreview.length===0){
