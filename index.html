@@ -36,6 +36,7 @@ button{ font-family:inherit; }
 .header-wrap{
   padding:24px 20px 14px; border-bottom:1px solid var(--cardBorder);
   background:linear-gradient(180deg,#FBF6EA,#F7F1E4);
+  position:sticky; top:0; z-index:25;
 }
 .header-row{ display:flex; align-items:center; gap:12px; }
 .logo{
@@ -301,7 +302,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.2</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.3</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -564,6 +565,13 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v3.3',
+    date: '2026-09-11',
+    changes: [
+      '標題列（App名稱、日期時間）改為固定在頂端，往下捲動內容時不會跟著移動',
+    ],
+  },
   {
     version: 'v3.2',
     date: '2026-09-04',
