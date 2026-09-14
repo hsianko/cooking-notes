@@ -329,7 +329,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v3.4</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.0</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -568,6 +568,7 @@ textarea.field{ min-height:56px; resize:vertical; }
       <span class="modal-title">版本紀錄</span>
       <button class="icon-btn" id="closeVerBtn">✕</button>
     </div>
+    <button class="checkout-btn" id="restoreCloudBtn" style="margin-bottom:16px;">☁️ 從雲端還原資料</button>
     <div id="verList"></div>
   </div>
 </div>
@@ -610,6 +611,15 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v4.0',
+    date: '2026-09-14',
+    changes: [
+      '採買清單、待辦事項新增雲端同步（試算表新增「採買清單」「待辦事項」分頁）',
+      '記帳、料理紀錄的雲端同步加上id，之後編輯可正確更新同一筆雲端紀錄',
+      '版本紀錄彈窗新增「從雲端還原資料」按鈕，可把手機資料還原成雲端試算表目前的內容',
+    ],
+  },
   {
     version: 'v3.4',
     date: '2026-09-11',
@@ -782,6 +792,10 @@ document.getElementById('verBadgeBtn').addEventListener('click', ()=>{
   verModal.classList.add('show');
 });
 document.getElementById('closeVerBtn').addEventListener('click', ()=> verModal.classList.remove('show'));
+document.getElementById('restoreCloudBtn').addEventListener('click', ()=>{
+  const ok = confirm('這會用雲端試算表的資料覆蓋目前手機上的所有紀錄（料理、記帳、採買、待辦），確定要還原嗎？');
+  if(ok) restoreFromCloud();
+});
 verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.classList.remove('show'); });
 
 /* ============ 底部分頁 ============ */
@@ -806,7 +820,7 @@ document.querySelectorAll('.bt-item').forEach(btn=>{
 let recipes = JSON.parse(localStorage.getItem(STORAGE_RECIPES) || '[]');
 let shopping = JSON.parse(localStorage.getItem(STORAGE_SHOPPING) || '[]');
 function saveRecipes(){ localStorage.setItem(STORAGE_RECIPES, JSON.stringify(recipes)); }
-function saveShopping(){ localStorage.setItem(STORAGE_SHOPPING, JSON.stringify(shopping)); }
+function saveShopping(){ localStorage.setItem(STORAGE_SHOPPING, JSON.stringify(shopping)); syncShoppingToCloud(); }
 
 const formCard = document.getElementById('formModal');
 let editingId = null;
@@ -1057,7 +1071,7 @@ function syncExpenseToCloud(exp){
   fetch(SHEET_API_URL, {
     method:'POST',
     body: JSON.stringify({
-      token: SHEET_TOKEN, date: exp.date, category: exp.category,
+      token: SHEET_TOKEN, id: exp.id, date: exp.date, category: exp.category,
       amount: exp.amount, payment: exp.payment, payer: exp.payer, note: exp.note
     })
   }).catch(()=>{ /* 離線或連線失敗時，資料仍保留在本機，之後可再補送 */ });
@@ -1067,11 +1081,63 @@ function syncRecipeToCloud(recipe){
   fetch(SHEET_API_URL, {
     method:'POST',
     body: JSON.stringify({
-      token: SHEET_TOKEN, type: 'recipe',
+      token: SHEET_TOKEN, type: 'recipe', id: recipe.id,
       name: recipe.name, tool: recipe.tool, mode: recipe.mode,
       time: recipe.time, notes: recipe.notes, ingredients: recipe.ingredients
     })
   }).catch(()=>{ /* 離線或連線失敗時，資料仍保留在本機，之後可再補送 */ });
+}
+
+function syncShoppingToCloud(){
+  fetch(SHEET_API_URL, {
+    method:'POST',
+    body: JSON.stringify({ token: SHEET_TOKEN, type:'shopping_sync', items: shopping })
+  }).catch(()=>{ /* 離線或連線失敗時，資料仍保留在本機，之後可再補送 */ });
+}
+
+function syncTodosToCloud(){
+  fetch(SHEET_API_URL, {
+    method:'POST',
+    body: JSON.stringify({ token: SHEET_TOKEN, type:'todo_sync', items: todos })
+  }).catch(()=>{ /* 離線或連線失敗時，資料仍保留在本機，之後可再補送 */ });
+}
+
+async function restoreFromCloud(){
+  showToast('從雲端讀取資料中...');
+  try {
+    const res = await fetch(SHEET_API_URL + '?token=' + encodeURIComponent(SHEET_TOKEN));
+    const data = await res.json();
+    if(data.error) throw new Error(data.error);
+
+    if(Array.isArray(data.expenses)) {
+      expenses = data.expenses.map(e=>({
+        id: e.id || Date.now().toString()+Math.random(),
+        date: (e.date||'').slice(0,10), category: e.category, amount: Number(e.amount),
+        payment: e.payment, payer: e.payer || 'me', note: e.note || ''
+      }));
+      saveExpenses();
+    }
+    if(Array.isArray(data.recipes)) {
+      recipes = data.recipes.map(r=>({
+        id: r.id || Date.now().toString()+Math.random(),
+        name: r.name, tool: r.tool, mode: r.mode, time: r.time, notes: r.notes, ingredients: r.ingredients
+      }));
+      saveRecipes();
+    }
+    if(Array.isArray(data.shopping)) {
+      shopping = data.shopping.map(i=>({ id:i.id, name:i.name, checked:!!i.checked, from:i.from||null }));
+      saveShopping();
+    }
+    if(Array.isArray(data.todos)) {
+      todos = data.todos.map(t=>({ id:t.id, name:t.name, priority:t.priority||'normal', due:t.due||null, done:!!t.done, link:t.link||null }));
+      saveTodos();
+    }
+
+    renderRecipes(); renderShopping(); renderCategoryChips(); renderExpenses(); renderTodos(); renderReminders();
+    showToast('已從雲端還原資料');
+  } catch(err){
+    showToast('還原失敗，請確認網路連線');
+  }
 }
 
 let selectedPayer = 'me';
@@ -1555,7 +1621,7 @@ document.getElementById('cameraInput').addEventListener('change', async function
 /* ============ 待辦事項 ============ */
 let todos = JSON.parse(localStorage.getItem(STORAGE_TODOS) || '[]');
 let editingTodoId = null;
-function saveTodos(){ localStorage.setItem(STORAGE_TODOS, JSON.stringify(todos)); }
+function saveTodos(){ localStorage.setItem(STORAGE_TODOS, JSON.stringify(todos)); syncTodosToCloud(); }
 
 function renderTodoLinkSelect(current){
   const sel = document.getElementById('t-link');
