@@ -849,15 +849,27 @@ document.getElementById('restoreCloudBtn').addEventListener('click', ()=>{
   if(ok) restoreFromCloud();
 });
 document.getElementById('enableNotifyBtn').addEventListener('click', async ()=>{
+  const isStandalone = window.navigator.standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  if(!isStandalone){
+    showToast('請先從手機主畫面的App圖示開啟（不是Safari分頁），再點一次這個按鈕');
+    return;
+  }
   try {
     if(typeof OneSignal === 'undefined'){
-      showToast('通知功能載入中，請稍後再試一次');
+      showToast('通知功能載入中，請等5秒後再試一次');
       return;
     }
+    const supported = OneSignal.Notifications.isPushSupported ? OneSignal.Notifications.isPushSupported() : true;
+    if(!supported){
+      showToast('這個裝置/系統版本不支援推播（需要iOS 16.4以上）');
+      return;
+    }
+    const currentPermission = OneSignal.Notifications.permission;
     await OneSignal.Notifications.requestPermission();
-    showToast('已請求通知權限，請確認手機彈出的允許畫面');
+    showToast('已請求通知權限（目前狀態：' + OneSignal.Notifications.permission + '）');
   } catch(err){
-    showToast('無法開啟通知，請確認已用Safari加入主畫面後再試');
+    showToast('開啟通知時發生錯誤：' + (err && err.message ? err.message : '未知錯誤'));
   }
 });
 verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.classList.remove('show'); });
