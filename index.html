@@ -322,6 +322,13 @@ textarea.field{ min-height:56px; resize:vertical; }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({ appId: "2cad1b7c-0742-429f-ad78-6f89eb0a2630" });
+  });
+</script>
 </head>
 <body>
 
@@ -329,7 +336,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.2</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.4</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -583,6 +590,7 @@ textarea.field{ min-height:56px; resize:vertical; }
       <span class="modal-title">版本紀錄</span>
       <button class="icon-btn" id="closeVerBtn">✕</button>
     </div>
+    <button class="checkout-btn" id="enableNotifyBtn" style="margin-bottom:10px; background:var(--rust);">🔔 開啟到期提醒通知</button>
     <button class="checkout-btn" id="restoreCloudBtn" style="margin-bottom:16px;">☁️ 從雲端還原資料</button>
     <div id="verList"></div>
   </div>
@@ -626,6 +634,21 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v4.4',
+    date: '2026-09-15',
+    changes: [
+      '接上真正的App推播通知（OneSignal），待辦到期會自動跳出通知，不用手動加行事曆',
+      '版本紀錄彈窗新增「開啟到期提醒通知」按鈕，第一次使用需要點一次並允許通知權限',
+    ],
+  },
+  {
+    version: 'v4.3',
+    date: '2026-09-14',
+    changes: [
+      '修正「加入行事曆提醒」在已安裝的主畫面App裡沒反應的問題，改為開新分頁跳轉到Safari處理',
+    ],
+  },
   {
     version: 'v4.2',
     date: '2026-09-14',
@@ -824,6 +847,18 @@ document.getElementById('closeVerBtn').addEventListener('click', ()=> verModal.c
 document.getElementById('restoreCloudBtn').addEventListener('click', ()=>{
   const ok = confirm('這會用雲端試算表的資料覆蓋目前手機上的所有紀錄（料理、記帳、採買、待辦），確定要還原嗎？');
   if(ok) restoreFromCloud();
+});
+document.getElementById('enableNotifyBtn').addEventListener('click', async ()=>{
+  try {
+    if(typeof OneSignal === 'undefined'){
+      showToast('通知功能載入中，請稍後再試一次');
+      return;
+    }
+    await OneSignal.Notifications.requestPermission();
+    showToast('已請求通知權限，請確認手機彈出的允許畫面');
+  } catch(err){
+    showToast('無法開啟通知，請確認已用Safari加入主畫面後再試');
+  }
 });
 verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.classList.remove('show'); });
 
@@ -1805,8 +1840,10 @@ function addTodoToCalendar(id){
   const t = todos.find(x=>x.id===id);
   if(!t || !t.due){ showToast('請先設定到期日期才能加入提醒'); return; }
   const ics = generateICSForTodo(t);
-  const dataUri = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
-  window.location.href = dataUri;
+  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  setTimeout(()=>URL.revokeObjectURL(url), 5000);
 }
 
 function renderTodos(){
