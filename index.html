@@ -329,7 +329,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.1</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.2</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -626,6 +626,13 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v4.2',
+    date: '2026-09-14',
+    changes: [
+      '待辦事項有設定到期日時，新增「加入行事曆提醒」按鈕，可加進iPhone行事曆／提醒事項，到期時由系統原生跳出通知',
+    ],
+  },
   {
     version: 'v4.1',
     date: '2026-09-14',
@@ -1743,6 +1750,7 @@ function makeTodoRow(t){
     <div style="flex:1;">
       <div class="todo-name"></div>
       ${t.due ? '<div class="todo-due"></div>' : ''}
+      ${t.due && !t.done ? '<div class="todo-link cal-btn">📅 加入行事曆提醒</div>' : ''}
       ${linkLabel ? '<div class="todo-link"></div>' : ''}
     </div>
     <span class="pri-tag ${t.priority==='high'?'pri-high':'pri-normal'}">${t.priority==='high'?'急':'普通'}</span>
@@ -1751,8 +1759,11 @@ function makeTodoRow(t){
   `;
   row.querySelector('.todo-name').textContent = t.name;
   if(t.due) row.querySelector('.todo-due').textContent = '到期：'+t.due;
+  if(t.due && !t.done){
+    row.querySelector('.cal-btn').addEventListener('click', ()=>addTodoToCalendar(t.id));
+  }
   if(linkLabel){
-    const linkEl = row.querySelector('.todo-link');
+    const linkEl = row.querySelector('.todo-link:not(.cal-btn)');
     linkEl.textContent = linkLabel + ' →';
     linkEl.addEventListener('click', ()=>todoLinkGo(t.link));
   }
@@ -1760,6 +1771,42 @@ function makeTodoRow(t){
   row.querySelector('.edit-todo-btn').addEventListener('click', ()=>editTodo(t.id));
   row.querySelector('.del-todo-btn').addEventListener('click', ()=>deleteTodo(t.id));
   return row;
+}
+
+function generateICSForTodo(t){
+  const dt = t.due.replace(/-/g,''); // YYYYMMDD
+  const startTime = dt + 'T090000';
+  const endTime = dt + 'T093000';
+  const now = new Date();
+  const dtstamp = now.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const uid = 'xiaorizi-todo-' + t.id + '@xiaorizi.app';
+  const summary = (t.name || '待辦事項').replace(/[\r\n]/g,' ');
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//小日子//Todo//ZH',
+    'BEGIN:VEVENT',
+    'UID:'+uid,
+    'DTSTAMP:'+dtstamp,
+    'DTSTART:'+startTime,
+    'DTEND:'+endTime,
+    'SUMMARY:'+summary,
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    'DESCRIPTION:'+summary,
+    'TRIGGER:-PT0M',
+    'END:VALARM',
+    'END:VEVENT',
+    'END:VCALENDAR'
+  ].join('\r\n');
+}
+
+function addTodoToCalendar(id){
+  const t = todos.find(x=>x.id===id);
+  if(!t || !t.due){ showToast('請先設定到期日期才能加入提醒'); return; }
+  const ics = generateICSForTodo(t);
+  const dataUri = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+  window.location.href = dataUri;
 }
 
 function renderTodos(){
