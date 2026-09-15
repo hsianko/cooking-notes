@@ -179,7 +179,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   position:fixed; bottom:96px; left:50%; transform:translateX(-50%);
   background:var(--ink); color:#FBF6EA; padding:10px 18px; border-radius:30px;
   font-size:12.5px; box-shadow:0 4px 16px rgba(0,0,0,0.2); opacity:0; pointer-events:none; transition:opacity .2s;
-  z-index:40; max-width:88vw; text-align:center;
+  z-index:60; max-width:88vw; text-align:center;
 }
 .toast.show{ opacity:1; }
 
@@ -336,7 +336,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.4</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.5</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -634,6 +634,13 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v4.5',
+    date: '2026-09-15',
+    changes: [
+      '修正提示訊息（toast）被彈窗背景擋住看不到的問題，尤其影響「開啟到期提醒通知」按鈕的回饋顯示',
+    ],
+  },
   {
     version: 'v4.4',
     date: '2026-09-15',
