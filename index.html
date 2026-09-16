@@ -336,7 +336,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.5</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.6</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -634,6 +634,13 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v4.6',
+    date: '2026-09-15',
+    changes: [
+      '修正「加入行事曆提醒」跳到新視窗後卡住轉圈的問題，改用不依賴原網頁的方式產生行事曆檔案',
+    ],
+  },
   {
     version: 'v4.5',
     date: '2026-09-15',
@@ -1859,10 +1866,8 @@ function addTodoToCalendar(id){
   const t = todos.find(x=>x.id===id);
   if(!t || !t.due){ showToast('請先設定到期日期才能加入提醒'); return; }
   const ics = generateICSForTodo(t);
-  const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
-  setTimeout(()=>URL.revokeObjectURL(url), 5000);
+  const dataUri = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
+  window.open(dataUri, '_blank');
 }
 
 function renderTodos(){
