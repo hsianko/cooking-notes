@@ -336,7 +336,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.6</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.7</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -635,6 +635,14 @@ function showToast(msg){
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
   {
+    version: 'v4.7',
+    date: '2026-09-16',
+    changes: [
+      '「加入行事曆提醒」改用iPhone系統分享選單，避開PWA內嵌瀏覽器無法處理行事曆檔案的限制',
+      '通知按鈕的訊息暫時改用系統彈窗（alert）顯示，方便排查目前卡在哪一步',
+    ],
+  },
+  {
     version: 'v4.6',
     date: '2026-09-15',
     changes: [
@@ -863,27 +871,27 @@ document.getElementById('restoreCloudBtn').addEventListener('click', ()=>{
   if(ok) restoreFromCloud();
 });
 document.getElementById('enableNotifyBtn').addEventListener('click', async ()=>{
+  alert('按鈕已點擊，開始檢查...');
   const isStandalone = window.navigator.standalone === true ||
     window.matchMedia('(display-mode: standalone)').matches;
   if(!isStandalone){
-    showToast('請先從手機主畫面的App圖示開啟（不是Safari分頁），再點一次這個按鈕');
+    alert('請先從手機主畫面的App圖示開啟（不是Safari分頁），再點一次這個按鈕');
     return;
   }
   try {
     if(typeof OneSignal === 'undefined'){
-      showToast('通知功能載入中，請等5秒後再試一次');
+      alert('通知功能（OneSignal SDK）載入失敗或還沒載入完成，請稍後再試一次');
       return;
     }
     const supported = OneSignal.Notifications.isPushSupported ? OneSignal.Notifications.isPushSupported() : true;
     if(!supported){
-      showToast('這個裝置/系統版本不支援推播（需要iOS 16.4以上）');
+      alert('這個裝置/系統版本不支援推播（需要iOS 16.4以上）');
       return;
     }
-    const currentPermission = OneSignal.Notifications.permission;
     await OneSignal.Notifications.requestPermission();
-    showToast('已請求通知權限（目前狀態：' + OneSignal.Notifications.permission + '）');
+    alert('已請求通知權限，目前狀態：' + OneSignal.Notifications.permission);
   } catch(err){
-    showToast('開啟通知時發生錯誤：' + (err && err.message ? err.message : '未知錯誤'));
+    alert('開啟通知時發生錯誤：' + (err && err.message ? err.message : String(err)));
   }
 });
 verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.classList.remove('show'); });
@@ -1862,10 +1870,26 @@ function generateICSForTodo(t){
   ].join('\r\n');
 }
 
-function addTodoToCalendar(id){
+async function addTodoToCalendar(id){
   const t = todos.find(x=>x.id===id);
   if(!t || !t.due){ showToast('請先設定到期日期才能加入提醒'); return; }
   const ics = generateICSForTodo(t);
+  const fileName = (t.name || 'reminder').replace(/[\\/:*?"<>|]/g,'') + '.ics';
+
+  if(navigator.canShare && window.File){
+    try {
+      const file = new File([ics], fileName, { type: 'text/calendar' });
+      if(navigator.canShare({ files: [file] })){
+        await navigator.share({ files: [file], title: t.name });
+        return;
+      }
+    } catch(err){
+      if(err && err.name === 'AbortError') return; // 使用者自己取消分享，不算錯誤
+      showToast('分享時發生錯誤，改用備用方式開啟');
+    }
+  }
+
+  // 備用方式：裝置不支援分享檔案時，退回開新分頁
   const dataUri = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics);
   window.open(dataUri, '_blank');
 }
