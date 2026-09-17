@@ -336,7 +336,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.7</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.8</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -635,6 +635,13 @@ function showToast(msg){
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
   {
+    version: 'v4.8',
+    date: '2026-09-17',
+    changes: [
+      '通知診斷改成單一總結彈窗，避免連續跳出多個alert被系統擋掉導致看不到後續訊息',
+    ],
+  },
+  {
     version: 'v4.7',
     date: '2026-09-16',
     changes: [
@@ -871,28 +878,27 @@ document.getElementById('restoreCloudBtn').addEventListener('click', ()=>{
   if(ok) restoreFromCloud();
 });
 document.getElementById('enableNotifyBtn').addEventListener('click', async ()=>{
-  alert('按鈕已點擊，開始檢查...');
-  const isStandalone = window.navigator.standalone === true ||
-    window.matchMedia('(display-mode: standalone)').matches;
-  if(!isStandalone){
-    alert('請先從手機主畫面的App圖示開啟（不是Safari分頁），再點一次這個按鈕');
-    return;
-  }
+  const report = [];
   try {
-    if(typeof OneSignal === 'undefined'){
-      alert('通知功能（OneSignal SDK）載入失敗或還沒載入完成，請稍後再試一次');
-      return;
+    const isStandalone = window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    report.push('主畫面模式：' + isStandalone);
+
+    report.push('OneSignal已載入：' + (typeof OneSignal !== 'undefined'));
+    if(typeof OneSignal !== 'undefined'){
+      report.push('Notifications物件：' + (typeof OneSignal.Notifications));
+      if(OneSignal.Notifications){
+        const supported = OneSignal.Notifications.isPushSupported ? OneSignal.Notifications.isPushSupported() : '(無法檢查)';
+        report.push('支援推播：' + supported);
+        report.push('請求前權限狀態：' + OneSignal.Notifications.permission);
+        await OneSignal.Notifications.requestPermission();
+        report.push('請求後權限狀態：' + OneSignal.Notifications.permission);
+      }
     }
-    const supported = OneSignal.Notifications.isPushSupported ? OneSignal.Notifications.isPushSupported() : true;
-    if(!supported){
-      alert('這個裝置/系統版本不支援推播（需要iOS 16.4以上）');
-      return;
-    }
-    await OneSignal.Notifications.requestPermission();
-    alert('已請求通知權限，目前狀態：' + OneSignal.Notifications.permission);
   } catch(err){
-    alert('開啟通知時發生錯誤：' + (err && err.message ? err.message : String(err)));
+    report.push('發生錯誤：' + (err && err.message ? err.message : String(err)));
   }
+  alert(report.join('\n'));
 });
 verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.classList.remove('show'); });
 
