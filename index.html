@@ -336,7 +336,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.8</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v4.9</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -635,6 +635,14 @@ function showToast(msg){
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
   {
+    version: 'v4.9',
+    date: '2026-09-17',
+    changes: [
+      '「加入行事曆提醒」改為真正的連結，長按可選「在Safari中打開」，可能比儲存到檔案更快',
+      '通知檢查加上10秒逾時保護，避免卡住時永遠不跳出結果',
+    ],
+  },
+  {
     version: 'v4.8',
     date: '2026-09-17',
     changes: [
@@ -879,6 +887,15 @@ document.getElementById('restoreCloudBtn').addEventListener('click', ()=>{
 });
 document.getElementById('enableNotifyBtn').addEventListener('click', async ()=>{
   const report = [];
+  let alerted = false;
+  const safetyTimer = setTimeout(()=>{
+    if(!alerted){
+      alerted = true;
+      report.push('（已等待10秒無回應，可能是OneSignal卡住或裝置不支援）');
+      alert(report.join('\n'));
+    }
+  }, 10000);
+
   try {
     const isStandalone = window.navigator.standalone === true ||
       window.matchMedia('(display-mode: standalone)').matches;
@@ -898,7 +915,11 @@ document.getElementById('enableNotifyBtn').addEventListener('click', async ()=>{
   } catch(err){
     report.push('發生錯誤：' + (err && err.message ? err.message : String(err)));
   }
-  alert(report.join('\n'));
+  clearTimeout(safetyTimer);
+  if(!alerted){
+    alerted = true;
+    alert(report.join('\n'));
+  }
 });
 verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.classList.remove('show'); });
 
@@ -1820,12 +1841,13 @@ function makeTodoRow(t){
   const row = document.createElement('div');
   row.className = 'todo-row' + (t.done ? ' done' : '');
   const linkLabel = todoLinkLabel(t.link);
+  const calHref = (t.due && !t.done) ? ('data:text/calendar;charset=utf-8,' + encodeURIComponent(generateICSForTodo(t))) : '';
   row.innerHTML = `
     <div class="checkbox ${t.done?'on':''}">${t.done?'✓':''}</div>
     <div style="flex:1;">
       <div class="todo-name"></div>
       ${t.due ? '<div class="todo-due"></div>' : ''}
-      ${t.due && !t.done ? '<div class="todo-link cal-btn">📅 加入行事曆提醒</div>' : ''}
+      ${t.due && !t.done ? `<a href="${calHref}" target="_blank" class="todo-link cal-btn">📅 加入行事曆提醒（長按可選「在Safari中打開」）</a>` : ''}
       ${linkLabel ? '<div class="todo-link"></div>' : ''}
     </div>
     <span class="pri-tag ${t.priority==='high'?'pri-high':'pri-normal'}">${t.priority==='high'?'急':'普通'}</span>
@@ -1835,7 +1857,10 @@ function makeTodoRow(t){
   row.querySelector('.todo-name').textContent = t.name;
   if(t.due) row.querySelector('.todo-due').textContent = '到期：'+t.due;
   if(t.due && !t.done){
-    row.querySelector('.cal-btn').addEventListener('click', ()=>addTodoToCalendar(t.id));
+    row.querySelector('.cal-btn').addEventListener('click', (e)=>{
+      e.preventDefault(); // 一般輕點：走分享選單流程；長按時瀏覽器會用原本的href顯示「在Safari中打開」選項
+      addTodoToCalendar(t.id);
+    });
   }
   if(linkLabel){
     const linkEl = row.querySelector('.todo-link:not(.cal-btn)');
