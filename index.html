@@ -327,7 +327,11 @@ textarea.field{ min-height:56px; resize:vertical; }
 <script>
   window.OneSignalDeferred = window.OneSignalDeferred || [];
   OneSignalDeferred.push(async function(OneSignal) {
-    await OneSignal.init({ appId: "2cad1b7c-0742-429f-ad78-6f89eb0a2630" });
+    await OneSignal.init({
+      appId: "2cad1b7c-0742-429f-ad78-6f89eb0a2630",
+      serviceWorkerParam: { scope: "/cooking-notes/" },
+      serviceWorkerPath: "/cooking-notes/OneSignalSDKWorker.js"
+    });
   });
 </script>
 </head>
@@ -337,7 +341,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v5.1</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v5.2</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -635,6 +639,14 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v5.2',
+    date: '2026-09-21',
+    changes: [
+      '修正OneSignal找不到Service Worker檔案的問題：網站架在/cooking-notes/子路徑，但OneSignal預設只找網域根目錄，已在初始化設定加上正確路徑',
+      '更新Service Worker檔案內容，改用OneSignal目前最新的檔案網址',
+    ],
+  },
   {
     version: 'v5.1',
     date: '2026-09-18',
