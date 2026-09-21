@@ -329,6 +329,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   OneSignalDeferred.push(async function(OneSignal) {
     await OneSignal.init({
       appId: "2cad1b7c-0742-429f-ad78-6f89eb0a2630",
+      safari_web_id: "web.onesignal.auto.5460a967-902f-480f-be25-7a4d963d753c",
       serviceWorkerParam: { scope: "/cooking-notes/" },
       serviceWorkerPath: "/cooking-notes/OneSignalSDKWorker.js"
     });
@@ -341,7 +342,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v5.2</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v5.3</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -639,6 +640,14 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v5.3',
+    date: '2026-09-21',
+    changes: [
+      '發現OneSignal後台整合方式先前誤選「Typical Site」，導致程式碼裡設定的Service Worker路徑完全被忽略，已改選Custom Code並修正Site URL',
+      '加入safari_web_id設定，這是切換Custom Code後才產生的必要識別碼',
+    ],
+  },
   {
     version: 'v5.2',
     date: '2026-09-21',
