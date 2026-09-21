@@ -11,6 +11,7 @@
 <meta name="theme-color" content="#F7F1E4">
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" href="icon.png">
+<link rel="manifest" href="manifest.json">
 <title>小日子</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
@@ -322,6 +323,13 @@ textarea.field{ min-height:56px; resize:vertical; }
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
+<script>
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({ appId: "2cad1b7c-0742-429f-ad78-6f89eb0a2630" });
+  });
+</script>
 </head>
 <body>
 
@@ -329,7 +337,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v5.0</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v5.1</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -583,6 +591,7 @@ textarea.field{ min-height:56px; resize:vertical; }
       <span class="modal-title">版本紀錄</span>
       <button class="icon-btn" id="closeVerBtn">✕</button>
     </div>
+    <button class="checkout-btn" id="enableNotifyBtn" style="margin-bottom:10px; background:var(--rust);">🔔 開啟到期提醒通知</button>
     <button class="checkout-btn" id="restoreCloudBtn" style="margin-bottom:16px;">☁️ 從雲端還原資料</button>
     <div id="verList"></div>
   </div>
@@ -626,6 +635,13 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v5.1',
+    date: '2026-09-18',
+    changes: [
+      '重新加入推播通知功能，這次補上iOS推播要求的manifest.json（網頁應用程式清單檔），先前缺少此檔案可能是request一直卡住的根本原因',
+    ],
+  },
   {
     version: 'v5.0',
     date: '2026-09-17',
@@ -884,6 +900,42 @@ document.getElementById('closeVerBtn').addEventListener('click', ()=> verModal.c
 document.getElementById('restoreCloudBtn').addEventListener('click', ()=>{
   const ok = confirm('這會用雲端試算表的資料覆蓋目前手機上的所有紀錄（料理、記帳、採買、待辦），確定要還原嗎？');
   if(ok) restoreFromCloud();
+});
+document.getElementById('enableNotifyBtn').addEventListener('click', async ()=>{
+  const report = [];
+  let alerted = false;
+  const safetyTimer = setTimeout(()=>{
+    if(!alerted){
+      alerted = true;
+      report.push('（已等待10秒無回應，可能是OneSignal卡住或裝置不支援）');
+      alert(report.join('\n'));
+    }
+  }, 10000);
+
+  try {
+    const isStandalone = window.navigator.standalone === true ||
+      window.matchMedia('(display-mode: standalone)').matches;
+    report.push('主畫面模式：' + isStandalone);
+
+    report.push('OneSignal已載入：' + (typeof OneSignal !== 'undefined'));
+    if(typeof OneSignal !== 'undefined'){
+      report.push('Notifications物件：' + (typeof OneSignal.Notifications));
+      if(OneSignal.Notifications){
+        const supported = OneSignal.Notifications.isPushSupported ? OneSignal.Notifications.isPushSupported() : '(無法檢查)';
+        report.push('支援推播：' + supported);
+        report.push('請求前權限狀態：' + OneSignal.Notifications.permission);
+        await OneSignal.Notifications.requestPermission();
+        report.push('請求後權限狀態：' + OneSignal.Notifications.permission);
+      }
+    }
+  } catch(err){
+    report.push('發生錯誤：' + (err && err.message ? err.message : String(err)));
+  }
+  clearTimeout(safetyTimer);
+  if(!alerted){
+    alerted = true;
+    alert(report.join('\n'));
+  }
 });
 verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.classList.remove('show'); });
 
