@@ -237,6 +237,22 @@ textarea.field{ min-height:56px; resize:vertical; }
 .payer-badge.me{ background:#EFF3E9; color:var(--sageDark); }
 .payer-badge.partner{ background:#DDE6EE; color:#3E5B7A; }
 
+.split-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+.split-row select{ flex:1.3; }
+.split-row input{ flex:1; text-align:right; font-family:'IBM Plex Mono',monospace; }
+.split-row .rm-split-btn{ border:none; background:transparent; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0; }
+.add-split-btn{
+  width:100%; padding:9px; border-radius:9px; border:1.5px dashed var(--rust);
+  background:var(--rustSoft); color:var(--rust); font-size:12.5px; font-weight:600; cursor:pointer; margin-top:2px;
+}
+.balance-bar{
+  display:flex; justify-content:space-between; align-items:center; margin-top:12px;
+  padding:10px 12px; border-radius:10px; font-size:12.5px; font-weight:600;
+}
+.balance-bar.ok{ background:#EFF3E9; color:var(--sageDark); }
+.balance-bar.warn{ background:var(--redSoft); color:#8A342C; }
+.balance-bar .amt{ font-family:'IBM Plex Mono',monospace; }
+
 .settle-card{ background:var(--card); border:1px solid var(--cardBorder); border-radius:14px; padding:16px; margin-bottom:14px; }
 .settle-title{ font-size:12px; color:var(--muted); margin-bottom:10px; font-weight:600; }
 .settle-row{ display:flex; justify-content:space-between; margin-bottom:8px; font-size:13px; }
@@ -342,7 +358,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v5.3</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v5.4</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -493,11 +509,13 @@ textarea.field{ min-height:56px; resize:vertical; }
       <label class="field-label">日期</label>
       <input class="field" type="date" id="e-date">
 
-      <label class="field-label">類別</label>
-      <select class="field" id="e-category"></select>
+      <label class="field-label">目標總額（收據總金額）</label>
+      <input class="field" type="number" inputmode="numeric" id="e-target-total" placeholder="例如：980">
 
-      <label class="field-label">金額</label>
-      <input class="field" type="number" inputmode="numeric" id="e-amount" placeholder="例如：680">
+      <label class="field-label" style="margin-bottom:2px;">依類別分配</label>
+      <div id="e-split-rows"></div>
+      <button class="add-split-btn" id="addSplitRowBtn" type="button">＋ 再加一個類別</button>
+      <div class="balance-bar" id="balanceBar"></div>
 
       <label class="field-label">付款方式</label>
       <select class="field" id="e-payment"></select>
@@ -640,6 +658,15 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v5.4',
+    date: '2026-09-21',
+    changes: [
+      '新增支出改為「多類別分配」介面：可一次設定目標總額，拆成多個類別分別記錄，存檔時自動存成對應筆數',
+      '拍照辨識加強：自動偵測收據上的個別品項金額，預先建立分配列，只需要幫每列選類別',
+      '編輯既有支出維持單筆編輯，不受多類別分配影響',
+    ],
+  },
   {
     version: 'v5.3',
     date: '2026-09-21',
@@ -1314,17 +1341,104 @@ document.getElementById('payerMeChip').addEventListener('click', ()=>setPayer('m
 document.getElementById('payerPartnerChip').addEventListener('click', ()=>setPayer('partner'));
 
 const expenseFormCard = document.getElementById('expenseFormModal');
+
+/* ===== 多類別分配 ===== */
+let splitRows = [{ category:'', amount:'' }];
+
+function categoryOptionsHtml(selected){
+  return categories.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('')
+    + '<option value="__add__">＋ 新增類別...</option>';
+}
+
+function renderSplitRows(){
+  const wrap = document.getElementById('e-split-rows');
+  const showRemove = !editingExpenseId && splitRows.length > 1;
+  wrap.innerHTML = splitRows.map((row, i)=>`
+    <div class="split-row">
+      <select class="field split-cat-select" data-index="${i}">${categoryOptionsHtml(row.category)}</select>
+      <input class="field split-amt-input" type="number" inputmode="numeric" data-index="${i}" placeholder="金額" value="${row.amount}">
+      ${showRemove ? `<button class="rm-split-btn" data-index="${i}" type="button">✕</button>` : ''}
+    </div>
+  `).join('');
+  document.getElementById('addSplitRowBtn').style.display = editingExpenseId ? 'none' : 'block';
+  updateBalance();
+}
+
+document.getElementById('e-split-rows').addEventListener('change', function(e){
+  if(e.target.classList.contains('split-cat-select')){
+    const i = Number(e.target.dataset.index);
+    if(e.target.value === '__add__'){
+      const name = prompt('新增類別名稱：');
+      if(name && name.trim()){
+        categories.push(name.trim());
+        saveCategories();
+        splitRows[i].category = name.trim();
+      } else {
+        splitRows[i].category = categories[0] || '';
+      }
+      renderSplitRows();
+    } else {
+      splitRows[i].category = e.target.value;
+    }
+  }
+});
+document.getElementById('e-split-rows').addEventListener('input', function(e){
+  if(e.target.classList.contains('split-amt-input')){
+    const i = Number(e.target.dataset.index);
+    splitRows[i].amount = e.target.value;
+    // 只有一列時，目標總額自動跟著同步，維持單筆輸入時零額外負擔
+    if(splitRows.length === 1){
+      document.getElementById('e-target-total').value = e.target.value;
+    }
+    updateBalance();
+  }
+});
+document.getElementById('e-split-rows').addEventListener('click', function(e){
+  if(e.target.classList.contains('rm-split-btn')){
+    const i = Number(e.target.dataset.index);
+    splitRows.splice(i, 1);
+    renderSplitRows();
+  }
+});
+document.getElementById('addSplitRowBtn').addEventListener('click', ()=>{
+  splitRows.push({ category: categories[0] || '', amount:'' });
+  renderSplitRows();
+});
+document.getElementById('e-target-total').addEventListener('input', updateBalance);
+
+function updateBalance(){
+  const target = parseFloat(document.getElementById('e-target-total').value) || 0;
+  const sum = splitRows.reduce((s,r)=> s + (parseFloat(r.amount)||0), 0);
+  const bar = document.getElementById('balanceBar');
+  const diff = target - sum;
+  if(target === 0){
+    bar.className = 'balance-bar';
+    bar.style.display = 'none';
+    return;
+  }
+  bar.style.display = 'flex';
+  if(Math.abs(diff) < 0.5){
+    bar.className = 'balance-bar ok';
+    bar.innerHTML = `<span>已分配 / 目標總額</span><span class="amt">$${sum.toLocaleString()} / $${target.toLocaleString()} ✓</span>`;
+  } else {
+    bar.className = 'balance-bar warn';
+    const diffText = diff > 0 ? `還差 $${diff.toLocaleString()}` : `多分配了 $${Math.abs(diff).toLocaleString()}`;
+    bar.innerHTML = `<span>已分配 / 目標總額</span><span class="amt">$${sum.toLocaleString()} / $${target.toLocaleString()}（${diffText}）</span>`;
+  }
+}
+
 document.getElementById('openExpenseFormBtn').addEventListener('click', ()=>{
   editingExpenseId = null;
   document.getElementById('expenseFormTitle').textContent = '新增支出';
   document.getElementById('e-date').value = todayStr();
-  document.getElementById('e-amount').value = '';
+  document.getElementById('e-target-total').value = '';
   const noteEl = document.getElementById('e-note');
   noteEl.value = '';
   noteEl.style.height = '';
-  renderCategorySelect();
   renderPaymentSelect();
-  if(lastCategory && categories.includes(lastCategory)) document.getElementById('e-category').value = lastCategory;
+  const defaultCat = (lastCategory && categories.includes(lastCategory)) ? lastCategory : (categories[0] || '');
+  splitRows = [{ category: defaultCat, amount: '' }];
+  renderSplitRows();
   if(lastPayment && payments.includes(lastPayment)) document.getElementById('e-payment').value = lastPayment;
   setPayer('me');
   expenseFormCard.classList.add('show');
@@ -1340,11 +1454,11 @@ function editExpense(id){
   if(!exp) return;
   editingExpenseId = id;
   document.getElementById('expenseFormTitle').textContent = '編輯支出';
-  renderCategorySelect();
   renderPaymentSelect();
   document.getElementById('e-date').value = exp.date;
-  document.getElementById('e-category').value = exp.category;
-  document.getElementById('e-amount').value = exp.amount;
+  document.getElementById('e-target-total').value = exp.amount;
+  splitRows = [{ category: exp.category, amount: exp.amount }];
+  renderSplitRows();
   document.getElementById('e-payment').value = exp.payment;
   setPayer(exp.payer === 'partner' ? 'partner' : 'me');
   const noteEl = document.getElementById('e-note');
@@ -1354,27 +1468,10 @@ function editExpense(id){
   expenseFormCard.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
-function renderCategorySelect(){
-  const sel = document.getElementById('e-category');
-  sel.innerHTML = categories.map(c=>`<option value="${c}">${c}</option>`).join('') + '<option value="__add__">＋ 新增類別...</option>';
-}
 function renderPaymentSelect(){
   const sel = document.getElementById('e-payment');
   sel.innerHTML = payments.map(p=>`<option value="${p}">${p}</option>`).join('') + '<option value="__add__">＋ 新增付款方式...</option>';
 }
-document.getElementById('e-category').addEventListener('change', function(){
-  if(this.value === '__add__'){
-    const name = prompt('新增類別名稱：');
-    if(name && name.trim()){
-      categories.push(name.trim());
-      saveCategories();
-      renderCategorySelect();
-      document.getElementById('e-category').value = name.trim();
-    } else {
-      this.value = categories[0] || '';
-    }
-  }
-});
 document.getElementById('e-payment').addEventListener('change', function(){
   if(this.value === '__add__'){
     const name = prompt('新增付款方式：');
@@ -1390,28 +1487,36 @@ document.getElementById('e-payment').addEventListener('change', function(){
 });
 
 document.getElementById('saveExpenseBtn').addEventListener('click', ()=>{
-  const amount = parseFloat(document.getElementById('e-amount').value);
-  if(!amount || amount<=0){ showToast('請輸入金額'); return; }
-  const data = {
-    date: document.getElementById('e-date').value || todayStr(),
-    category: document.getElementById('e-category').value,
-    amount,
-    payment: document.getElementById('e-payment').value,
-    payer: selectedPayer,
-    note: document.getElementById('e-note').value.trim(),
-  };
+  const date = document.getElementById('e-date').value || todayStr();
+  const payment = document.getElementById('e-payment').value;
+  const note = document.getElementById('e-note').value.trim();
+  const validRows = splitRows.filter(r => r.category && parseFloat(r.amount) > 0);
+
+  if(validRows.length === 0){ showToast('請至少填寫一筆類別與金額'); return; }
+
   if(editingExpenseId){
+    const row = validRows[0];
+    const data = { date, category: row.category, amount: parseFloat(row.amount), payment, payer: selectedPayer, note };
     expenses = expenses.map(e=> e.id===editingExpenseId ? { ...e, ...data } : e);
     showToast('已更新支出（僅本機，雲端試算表不會同步修改）');
+    lastCategory = data.category;
+    lastPayment = data.payment;
   } else {
-    const exp = { id: Date.now().toString(), ...data };
-    expenses.unshift(exp);
-    syncExpenseToCloud(exp);
-    showToast('已新增支出，同步中...');
+    validRows.forEach(row=>{
+      const exp = {
+        id: Date.now().toString() + Math.random().toString(36).slice(2,7),
+        date, category: row.category, amount: parseFloat(row.amount),
+        payment, payer: selectedPayer, note
+      };
+      expenses.unshift(exp);
+      syncExpenseToCloud(exp);
+    });
+    lastCategory = validRows[validRows.length-1].category;
+    lastPayment = payment;
+    showToast(validRows.length > 1 ? `已存成 ${validRows.length} 筆支出，同步中...` : '已新增支出，同步中...');
   }
+
   saveExpenses();
-  lastCategory = data.category;
-  lastPayment = data.payment;
   localStorage.setItem('xiaorizi-last-category', lastCategory);
   localStorage.setItem('xiaorizi-last-payment', lastPayment);
   editingExpenseId = null;
@@ -1713,15 +1818,38 @@ async function ocrSpaceRecognize(imgDataUrl){
   return text;
 }
 
+function extractLineAmounts(text){
+  const nums = (text.match(/\$\s?[\d,]+(?:\.\d+)?/g) || [])
+    .map(s => parseFloat(s.replace(/[$,\s]/g,'')))
+    .filter(n => n > 0 && n < 1000000);
+  if(nums.length < 2) return [];
+  const total = Math.max(...nums);
+  const rest = [...nums];
+  const idx = rest.indexOf(total);
+  rest.splice(idx, 1); // 移除一個最大值，視為「總計」那一行，不當作品項
+  // 收據上「總計」有時候會重複出現兩次（例如「小結 $825 信用卡 $825」），一併濾掉
+  return rest.filter(n => n !== total);
+}
+
 function fillExpenseFormWithOcrText(text){
   editingExpenseId = null;
   document.getElementById('expenseFormTitle').textContent = '新增支出（拍照辨識）';
   document.getElementById('e-date').value = todayStr();
-  renderCategorySelect();
   renderPaymentSelect();
   const cleaned = cleanOcrText(text);
   const guess = guessAmountFromText(cleaned);
-  document.getElementById('e-amount').value = guess;
+  document.getElementById('e-target-total').value = guess || '';
+
+  const lineAmounts = extractLineAmounts(cleaned);
+  if(lineAmounts.length >= 2){
+    splitRows = lineAmounts.map(amt => ({ category:'', amount: amt }));
+    showToast(`偵測到${lineAmounts.length}個品項金額，請幫每一列選擇類別`);
+  } else {
+    const defaultCat = (lastCategory && categories.includes(lastCategory)) ? lastCategory : (categories[0] || '');
+    splitRows = [{ category: defaultCat, amount: guess || '' }];
+  }
+  renderSplitRows();
+
   const noteEl = document.getElementById('e-note');
   noteEl.value = cleaned.replace(/\n+/g,' ').trim();
   autoGrowTextarea(noteEl);
@@ -1761,8 +1889,10 @@ document.getElementById('cameraInput').addEventListener('change', async function
       editingExpenseId = null;
       document.getElementById('expenseFormTitle').textContent = '新增支出';
       document.getElementById('e-date').value = todayStr();
-      renderCategorySelect();
+      document.getElementById('e-target-total').value = '';
       renderPaymentSelect();
+      splitRows = [{ category: categories[0] || '', amount: '' }];
+      renderSplitRows();
       expenseFormCard.classList.add('show');
     } else {
       fillExpenseFormWithOcrText(rawText);
@@ -1773,8 +1903,10 @@ document.getElementById('cameraInput').addEventListener('change', async function
     editingExpenseId = null;
     document.getElementById('expenseFormTitle').textContent = '新增支出';
     document.getElementById('e-date').value = todayStr();
-    renderCategorySelect();
+    document.getElementById('e-target-total').value = '';
     renderPaymentSelect();
+    splitRows = [{ category: categories[0] || '', amount: '' }];
+    renderSplitRows();
     expenseFormCard.classList.add('show');
   }
 });
