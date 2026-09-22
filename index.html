@@ -23,6 +23,20 @@
   --red:#C1453D; --redSoft:#F5DCD9;
   --orange:#D98A3D; --orangeSoft:#F5E7D0;
 }
+html[data-theme="ocean"]{
+  --bg:#EAF3F2; --card:#FBFEFE; --cardBorder:#CFE3E1;
+  --ink:#1F3B3A; --muted:#6E938F; --sage:#3E8E85; --sageDark:#2C6D65;
+  --rust:#2D7A8C; --rustSoft:#D6EBEF;
+  --red:#C1453D; --redSoft:#F5DCD9;
+  --orange:#3E8E85; --orangeSoft:#D6EBEF;
+}
+html[data-theme="dark"]{
+  --bg:#1C1917; --card:#262220; --cardBorder:#3A3532;
+  --ink:#EFE9E4; --muted:#9C8F87; --sage:#8FA37E; --sageDark:#728A62;
+  --rust:#D98553; --rustSoft:#3D2E24;
+  --red:#E27C73; --redSoft:#3D2624;
+  --orange:#E0A855; --orangeSoft:#3D3324;
+}
 *{box-sizing:border-box;}
 body{
   margin:0; min-height:100vh; background:var(--bg); color:var(--ink);
@@ -196,6 +210,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   border:none; background:transparent;
 }
 .bt-item svg{ width:21px; height:21px; stroke:currentColor; fill:none; stroke-width:1.8; }
+.bottom-bar.no-icon .bt-item svg{ display:none; }
 .bt-item .label-pill{ padding:3px 12px; border-radius:20px; }
 .bt-item.active{ color:var(--rust); font-weight:700; }
 .bt-item.active .label-pill{ background:var(--rustSoft); }
@@ -251,6 +266,50 @@ textarea.field{ min-height:56px; resize:vertical; }
 }
 .balance-bar.ok{ background:#EFF3E9; color:var(--sageDark); }
 .balance-bar.warn{ background:var(--redSoft); color:#8A342C; }
+
+/* ===== 設定頁面 ===== */
+.settings-section{ margin-bottom:26px; }
+.settings-section-title{ font-size:11px; font-weight:700; letter-spacing:.08em; color:var(--rust); text-transform:uppercase; margin-bottom:10px; }
+.setting-row{ display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid var(--cardBorder); gap:10px; }
+.setting-row:last-child{ border-bottom:none; }
+.setting-row .lbl{ font-size:13.5px; }
+.setting-row .sub{ font-size:11px; color:var(--muted); margin-top:2px; }
+.setting-select{
+  padding:7px 10px; border-radius:8px; border:1px solid var(--cardBorder);
+  background:#FFFEFA; color:var(--ink); font-size:13px; font-family:inherit;
+}
+.theme-swatch-row{ display:flex; gap:10px; }
+.theme-swatch{
+  flex:1; border-radius:12px; padding:12px 8px; text-align:center; cursor:pointer;
+  border:2px solid var(--cardBorder); font-size:11.5px; font-weight:600;
+}
+.theme-swatch.active{ border-color:var(--rust); }
+.theme-dot{ width:28px; height:28px; border-radius:50%; margin:0 auto 6px; }
+
+.toggle-switch{
+  width:42px; height:24px; border-radius:20px; background:var(--cardBorder); position:relative; cursor:pointer; flex-shrink:0;
+}
+.toggle-switch.on{ background:var(--sage); }
+.toggle-switch .knob{
+  width:18px; height:18px; border-radius:50%; background:#fff; position:absolute; top:3px; left:3px;
+  transition:left .15s;
+}
+.toggle-switch.on .knob{ left:21px; }
+
+.manage-list-row{ display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid var(--cardBorder); }
+.manage-list-row:last-child{ border-bottom:none; }
+.manage-list-row .name{ flex:1; font-size:13px; }
+.manage-list-row button{ border:none; background:transparent; color:var(--muted); font-size:14px; cursor:pointer; padding:2px 5px; }
+.manage-list-row button.danger{ color:var(--red); }
+.settings-text-input{
+  width:100%; padding:9px 11px; border-radius:8px; border:1px solid var(--cardBorder);
+  background:#FFFEFA; font-size:13.5px; color:var(--ink); font-family:inherit; box-sizing:border-box;
+}
+.settings-danger-btn{
+  width:100%; padding:11px; border-radius:10px; border:1px solid var(--redSoft);
+  background:transparent; color:var(--red); font-size:13.5px; font-weight:600; cursor:pointer; margin-top:8px;
+}
+.settings-add-row{ display:flex; gap:8px; margin-top:8px; }
 .balance-bar .amt{ font-family:'IBM Plex Mono',monospace; }
 
 .settle-card{ background:var(--card); border:1px solid var(--cardBorder); border-radius:14px; padding:16px; margin-bottom:14px; }
@@ -357,11 +416,12 @@ textarea.field{ min-height:56px; resize:vertical; }
 <div class="header-wrap">
   <div class="header-row">
     <div class="logo">📖</div>
-    <div>
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v5.4</button></h1>
+    <div style="flex:1;">
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v6.0</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
+    <button class="icon-btn" id="openSettingsBtn" style="font-size:20px;">⚙️</button>
   </div>
 </div>
 
@@ -522,8 +582,8 @@ textarea.field{ min-height:56px; resize:vertical; }
 
       <label class="field-label">付款人</label>
       <div class="payer-row">
-        <div class="payer-chip active" id="payerMeChip" data-payer="me">🧍 自己</div>
-        <div class="payer-chip" id="payerPartnerChip" data-payer="partner">🧑‍🤝‍🧑 對方</div>
+        <div class="payer-chip active" id="payerMeChip" data-payer="me">🧍 <span id="payerMeChipLabel">自己</span></div>
+        <div class="payer-chip" id="payerPartnerChip" data-payer="partner">🧑‍🤝‍🧑 <span id="payerPartnerChipLabel">對方</span></div>
       </div>
 
       <label class="field-label">備註（選填）</label>
@@ -608,6 +668,88 @@ textarea.field{ min-height:56px; resize:vertical; }
 
 <div class="toast" id="toast"></div>
 
+<div class="modal-overlay" id="settingsModal">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <span class="modal-title">設定</span>
+      <button class="icon-btn" id="closeSettingsBtn">✕</button>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">外觀</div>
+      <div class="theme-swatch-row" id="themeSwatchRow"></div>
+      <div class="setting-row">
+        <div><div class="lbl">底部導覽列圖示</div><div class="sub">切換要不要顯示線條圖示</div></div>
+        <div class="toggle-switch" id="navIconToggle"><div class="knob"></div></div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">首頁</div>
+      <div class="setting-row"><div class="lbl">板塊順序</div></div>
+      <div id="homeOrderList"></div>
+      <div class="setting-row">
+        <div class="lbl">待辦預覽顯示筆數</div>
+        <select class="setting-select" id="homePreviewCountSelect">
+          <option value="2">2筆</option><option value="3">3筆</option>
+          <option value="4">4筆</option><option value="5">5筆</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">記帳</div>
+      <div class="setting-row"><div class="lbl">管理類別</div></div>
+      <div id="manageCatList"></div>
+      <div class="settings-add-row">
+        <input class="settings-text-input" id="newCatInput" placeholder="新增類別名稱">
+        <button class="add-small-btn" id="addCatBtn" type="button">＋</button>
+      </div>
+
+      <div class="setting-row" style="margin-top:14px;"><div class="lbl">管理付款方式</div></div>
+      <div id="managePayList"></div>
+      <div class="settings-add-row">
+        <input class="settings-text-input" id="newPayInput" placeholder="新增付款方式名稱">
+        <button class="add-small-btn" id="addPayBtn" type="button">＋</button>
+      </div>
+
+      <label class="field-label">「自己」要顯示的稱呼</label>
+      <input class="settings-text-input" id="payerMeLabelInput" placeholder="自己">
+      <label class="field-label">「對方」要顯示的稱呼</label>
+      <input class="settings-text-input" id="payerPartnerLabelInput" placeholder="對方">
+
+      <div class="setting-row" style="margin-top:10px;">
+        <div><div class="lbl">拍照辨識方式</div><div class="sub">雲端較準但需連網，本機辨識較不準但保護隱私</div></div>
+      </div>
+      <select class="setting-select" id="ocrPrefSelect" style="width:100%;">
+        <option value="cloud">雲端優先（推薦）</option>
+        <option value="local">只用本機辨識（不連網）</option>
+      </select>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">待辦事項</div>
+      <div class="setting-row">
+        <div class="lbl">顯示已完成事項</div>
+        <div class="toggle-switch" id="showDoneToggle"><div class="knob"></div></div>
+      </div>
+      <div class="setting-row">
+        <div class="lbl">新增待辦預設優先順序</div>
+        <select class="setting-select" id="defaultPrioritySelect">
+          <option value="normal">普通</option>
+          <option value="high">急</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">資料管理</div>
+      <button class="checkout-btn" id="exportDataBtn" style="margin-bottom:10px;">⬇️ 匯出資料備份</button>
+      <button class="settings-danger-btn" id="clearLocalDataBtn">🗑 清除本機資料</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="verModal">
   <div class="modal-sheet">
     <div class="modal-head">
@@ -628,6 +770,15 @@ const STORAGE_EXPENSES = 'xiaorizi-expenses';
 const STORAGE_CATEGORIES = 'xiaorizi-categories';
 const STORAGE_PAYMENTS = 'xiaorizi-payments';
 const STORAGE_TODOS = 'xiaorizi-todos';
+const STORAGE_THEME = 'xiaorizi-theme';
+const STORAGE_NAV_ICON = 'xiaorizi-nav-icon';
+const STORAGE_HOME_ORDER = 'xiaorizi-home-order';
+const STORAGE_HOME_PREVIEW_COUNT = 'xiaorizi-home-preview-count';
+const STORAGE_PAYER_ME_LABEL = 'xiaorizi-payer-me-label';
+const STORAGE_PAYER_PARTNER_LABEL = 'xiaorizi-payer-partner-label';
+const STORAGE_OCR_PREF = 'xiaorizi-ocr-pref';
+const STORAGE_SHOW_DONE = 'xiaorizi-show-done';
+const STORAGE_DEFAULT_PRIORITY = 'xiaorizi-default-priority';
 
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxlpVAUCOimnIqwrOBq54cpKHt9QoyipLyJu43BPV-etN2eS0dprYCB99ylM_qY3CE/exec';
 const SHEET_TOKEN = 'xiaorizi2026';
@@ -648,6 +799,26 @@ function updateClock(){
 updateClock();
 setInterval(updateClock, 1000*30);
 
+/* ============ 設定狀態 ============ */
+let appTheme = localStorage.getItem(STORAGE_THEME) || 'warm';
+let navIconOn = localStorage.getItem(STORAGE_NAV_ICON) !== 'off';
+let homeOrder = JSON.parse(localStorage.getItem(STORAGE_HOME_ORDER) || '["todo","money","recipe","shop"]');
+let homePreviewCount = parseInt(localStorage.getItem(STORAGE_HOME_PREVIEW_COUNT) || '3', 10);
+let payerMeLabel = localStorage.getItem(STORAGE_PAYER_ME_LABEL) || '自己';
+let payerPartnerLabel = localStorage.getItem(STORAGE_PAYER_PARTNER_LABEL) || '對方';
+let ocrPref = localStorage.getItem(STORAGE_OCR_PREF) || 'cloud';
+let showDoneTodos = localStorage.getItem(STORAGE_SHOW_DONE) !== 'off';
+let defaultPriority = localStorage.getItem(STORAGE_DEFAULT_PRIORITY) || 'normal';
+
+function applyTheme(){
+  document.documentElement.setAttribute('data-theme', appTheme === 'warm' ? '' : appTheme);
+}
+function applyNavIcon(){
+  document.getElementById('bottomBar').classList.toggle('no-icon', !navIconOn);
+}
+applyTheme();
+applyNavIcon();
+
 function showToast(msg){
   const t = document.getElementById('toast');
   t.textContent = msg;
@@ -658,6 +829,18 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v6.0',
+    date: '2026-09-21',
+    changes: [
+      '新增「設定」頁面（點標題列右上角⚙️齒輪），可自行調整：主題色系（暖色/海洋藍綠/深色）、底部導覽圖示開關、首頁板塊順序、首頁待辦預覽筆數',
+      '記帳類別／付款方式新增管理功能：可改名、刪除、排序，改名會連動更新既有紀錄',
+      '付款人「自己／對方」文字可自訂成任意稱呼',
+      '拍照辨識方式可選擇雲端優先或只用本機（不連網）',
+      '待辦事項可設定是否顯示已完成項目、新增時的預設優先順序',
+      '新增「匯出資料備份」與「清除本機資料」功能',
+    ],
+  },
   {
     version: 'v5.4',
     date: '2026-09-21',
@@ -1609,11 +1792,11 @@ function renderExpenses(){
   } else {
     const diff = Math.round((mePaid - partnerPaid)/2);
     let resultText = '打平，不用互相轉帳';
-    if(diff > 0) resultText = `若平分，對方需再轉給自己 $${diff.toLocaleString()}`;
-    if(diff < 0) resultText = `若平分，自己需再轉給對方 $${Math.abs(diff).toLocaleString()}`;
+    if(diff > 0) resultText = `若平分，${payerPartnerLabel}需再轉給${payerMeLabel} $${diff.toLocaleString()}`;
+    if(diff < 0) resultText = `若平分，${payerMeLabel}需再轉給${payerPartnerLabel} $${Math.abs(diff).toLocaleString()}`;
     settleBody.innerHTML = `
-      <div class="settle-row"><span>自己付了</span><b>$${mePaid.toLocaleString()}</b></div>
-      <div class="settle-row"><span>對方付了</span><b>$${partnerPaid.toLocaleString()}</b></div>
+      <div class="settle-row"><span>${payerMeLabel}付了</span><b>$${mePaid.toLocaleString()}</b></div>
+      <div class="settle-row"><span>${payerPartnerLabel}付了</span><b>$${partnerPaid.toLocaleString()}</b></div>
       <div class="settle-result">${resultText}</div>
     `;
   }
@@ -1644,7 +1827,7 @@ function renderExpenses(){
         <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
       `;
       row.querySelector('.name').textContent = e.note || e.category;
-      const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?'對方付':'自己付'}</span>` : '';
+      const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?payerPartnerLabel:payerMeLabel}付</span>` : '';
       row.querySelector('.meta').innerHTML = `${e.category} · ${e.payment}${payerBadge}`;
       row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
       row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
@@ -1862,15 +2045,17 @@ document.getElementById('cameraInput').addEventListener('change', async function
   this.value = '';
   if(!file) return;
 
-  showToast('雲端辨識中，請稍候...');
-  try {
-    const dataUrl = await getResizedDataUrl(file, 1600, 0.85);
-    const text = await ocrSpaceRecognize(dataUrl);
-    fillExpenseFormWithOcrText(text);
-    showToast('雲端辨識完成，請確認金額後儲存');
-    return;
-  } catch(cloudErr){
-    showToast('雲端辨識失敗，改用手機本機辨識...');
+  if(ocrPref !== 'local'){
+    showToast('雲端辨識中，請稍候...');
+    try {
+      const dataUrl = await getResizedDataUrl(file, 1600, 0.85);
+      const text = await ocrSpaceRecognize(dataUrl);
+      fillExpenseFormWithOcrText(text);
+      showToast('雲端辨識完成，請確認金額後儲存');
+      return;
+    } catch(cloudErr){
+      showToast('雲端辨識失敗，改用手機本機辨識...');
+    }
   }
 
   // 雲端失敗時，退回本機辨識當備援
@@ -1934,7 +2119,7 @@ document.getElementById('openTodoFormBtn').addEventListener('click', ()=>{
   editingTodoId = null;
   document.getElementById('todoFormTitle').textContent = '新增待辦事項';
   document.getElementById('t-name').value='';
-  document.getElementById('t-priority').value='normal';
+  document.getElementById('t-priority').value=defaultPriority;
   document.getElementById('t-due').value='';
   renderTodoLinkSelect('');
   todoFormCard.classList.add('show');
@@ -2051,8 +2236,8 @@ function renderTodos(){
     { label: '逾期', items: overdue },
     { label: '今天', items: dueToday },
     { label: '之後', items: later },
-    { label: '已完成', items: done },
   ];
+  if(showDoneTodos) groups.push({ label: '已完成', items: done });
 
   if(todos.length>0){
     groups.forEach(g=>{
@@ -2121,12 +2306,13 @@ document.getElementById('homeRecipeCard').addEventListener('click', (e)=>{
 document.getElementById('homeShopCard').addEventListener('click', ()=>goTab('shopping'));
 
 function renderHome(){
-  // 待辦：優先顯示逾期/今天到期，不足3筆再補未完成的一般待辦
+  applyHomeOrder();
+  // 待辦：優先顯示逾期/今天到期，不足N筆再補未完成的一般待辦
   const today = todayStr();
   const overdue = todos.filter(t=>!t.done && t.due && t.due < today);
   const dueToday = todos.filter(t=>!t.done && t.due && t.due === today);
   const others = todos.filter(t=>!t.done && !(t.due && t.due<=today));
-  const todoPreview = [...overdue, ...dueToday, ...others].slice(0,3);
+  const todoPreview = [...overdue, ...dueToday, ...others].slice(0, homePreviewCount);
 
   const headlineEl = document.getElementById('homeTodoHeadline');
   const urgentCount = overdue.length + dueToday.length;
@@ -2222,6 +2408,277 @@ function renderHome(){
     `;
   }
 }
+
+/* ============ 設定頁面邏輯 ============ */
+const homeOrderMeta = {
+  todo:   { id:'homeTodoCard',   label:'✅ 待辦事項' },
+  money:  { id:'homeMoneyCard',  label:'💰 本月支出' },
+  recipe: { id:'homeRecipeCard', label:'🍳 料理紀錄' },
+  shop:   { id:'homeShopCard',   label:'🧺 採買清單' },
+};
+function applyHomeOrder(){
+  const parent = document.getElementById('home');
+  homeOrder.forEach(key=>{
+    const meta = homeOrderMeta[key];
+    if(!meta) return;
+    const el = document.getElementById(meta.id);
+    if(el) parent.appendChild(el);
+  });
+}
+function saveHomeOrder(){
+  localStorage.setItem(STORAGE_HOME_ORDER, JSON.stringify(homeOrder));
+  applyHomeOrder();
+  renderHomeOrderList();
+}
+function renderHomeOrderList(){
+  const wrap = document.getElementById('homeOrderList');
+  wrap.innerHTML = homeOrder.map((key,i)=>{
+    const meta = homeOrderMeta[key];
+    return `
+      <div class="manage-list-row">
+        <span class="name">${meta.label}</span>
+        <button class="move-up-btn" data-i="${i}" ${i===0?'disabled':''} type="button">▲</button>
+        <button class="move-down-btn" data-i="${i}" ${i===homeOrder.length-1?'disabled':''} type="button">▼</button>
+      </div>
+    `;
+  }).join('');
+}
+document.getElementById('homeOrderList').addEventListener('click', function(e){
+  const i = Number(e.target.dataset.i);
+  if(isNaN(i)) return;
+  if(e.target.classList.contains('move-up-btn') && i>0){
+    [homeOrder[i-1], homeOrder[i]] = [homeOrder[i], homeOrder[i-1]];
+    saveHomeOrder();
+  } else if(e.target.classList.contains('move-down-btn') && i<homeOrder.length-1){
+    [homeOrder[i+1], homeOrder[i]] = [homeOrder[i], homeOrder[i+1]];
+    saveHomeOrder();
+  }
+});
+
+function applyPayerLabels(){
+  document.getElementById('payerMeChipLabel').textContent = payerMeLabel;
+  document.getElementById('payerPartnerChipLabel').textContent = payerPartnerLabel;
+}
+applyPayerLabels();
+
+/* ---- 開關設定彈窗 ---- */
+const settingsModalEl = document.getElementById('settingsModal');
+document.getElementById('openSettingsBtn').addEventListener('click', ()=>{
+  renderSettingsPanel();
+  settingsModalEl.classList.add('show');
+});
+document.getElementById('closeSettingsBtn').addEventListener('click', ()=> settingsModalEl.classList.remove('show'));
+settingsModalEl.addEventListener('click', (e)=>{ if(e.target===settingsModalEl) settingsModalEl.classList.remove('show'); });
+
+function renderSettingsPanel(){
+  // 主題色系
+  const themes = [
+    { key:'warm', label:'暖色系', dot:'#C1622C' },
+    { key:'ocean', label:'海洋藍綠', dot:'#2D7A8C' },
+    { key:'dark', label:'深色模式', dot:'#D98553' },
+  ];
+  const swatchRow = document.getElementById('themeSwatchRow');
+  swatchRow.innerHTML = themes.map(t=>`
+    <div class="theme-swatch ${appTheme===t.key?'active':''}" data-theme="${t.key}">
+      <div class="theme-dot" style="background:${t.dot};"></div>${t.label}
+    </div>
+  `).join('');
+  swatchRow.querySelectorAll('.theme-swatch').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      appTheme = el.dataset.theme;
+      localStorage.setItem(STORAGE_THEME, appTheme);
+      applyTheme();
+      renderSettingsPanel();
+    });
+  });
+
+  // 底部導覽圖示
+  const navToggle = document.getElementById('navIconToggle');
+  navToggle.classList.toggle('on', navIconOn);
+  navToggle.onclick = ()=>{
+    navIconOn = !navIconOn;
+    localStorage.setItem(STORAGE_NAV_ICON, navIconOn ? 'on' : 'off');
+    applyNavIcon();
+    renderSettingsPanel();
+  };
+
+  // 首頁板塊順序
+  renderHomeOrderList();
+
+  // 首頁待辦預覽筆數
+  const previewSel = document.getElementById('homePreviewCountSelect');
+  previewSel.value = String(homePreviewCount);
+  previewSel.onchange = ()=>{
+    homePreviewCount = parseInt(previewSel.value, 10);
+    localStorage.setItem(STORAGE_HOME_PREVIEW_COUNT, String(homePreviewCount));
+    renderHome();
+  };
+
+  // 類別管理
+  renderManageList('manageCatList', categories, {
+    onRename: (i, newName)=>{
+      const oldName = categories[i];
+      expenses = expenses.map(e => e.category===oldName ? { ...e, category:newName } : e);
+      categories[i] = newName;
+      saveCategories(); saveExpenses(); renderExpenses(); renderManageCat();
+    },
+    onDelete: (i)=>{
+      categories.splice(i,1);
+      saveCategories(); renderManageCat();
+    },
+    onMove: (from,to)=>{
+      const [item] = categories.splice(from,1);
+      categories.splice(to,0,item);
+      saveCategories(); renderManageCat();
+    }
+  });
+  document.getElementById('addCatBtn').onclick = ()=>{
+    const input = document.getElementById('newCatInput');
+    const name = input.value.trim();
+    if(!name) return;
+    categories.push(name);
+    saveCategories();
+    input.value='';
+    renderManageCat();
+  };
+
+  // 付款方式管理
+  renderManageList('managePayList', payments, {
+    onRename: (i, newName)=>{
+      const oldName = payments[i];
+      expenses = expenses.map(e => e.payment===oldName ? { ...e, payment:newName } : e);
+      payments[i] = newName;
+      savePayments(); saveExpenses(); renderExpenses(); renderManagePay();
+    },
+    onDelete: (i)=>{
+      payments.splice(i,1);
+      savePayments(); renderManagePay();
+    },
+    onMove: (from,to)=>{
+      const [item] = payments.splice(from,1);
+      payments.splice(to,0,item);
+      savePayments(); renderManagePay();
+    }
+  });
+  document.getElementById('addPayBtn').onclick = ()=>{
+    const input = document.getElementById('newPayInput');
+    const name = input.value.trim();
+    if(!name) return;
+    payments.push(name);
+    savePayments();
+    input.value='';
+    renderManagePay();
+  };
+
+  // 付款人稱呼
+  const meInput = document.getElementById('payerMeLabelInput');
+  const partnerInput = document.getElementById('payerPartnerLabelInput');
+  meInput.value = payerMeLabel;
+  partnerInput.value = payerPartnerLabel;
+  meInput.onchange = ()=>{
+    payerMeLabel = meInput.value.trim() || '自己';
+    localStorage.setItem(STORAGE_PAYER_ME_LABEL, payerMeLabel);
+    applyPayerLabels(); renderExpenses();
+  };
+  partnerInput.onchange = ()=>{
+    payerPartnerLabel = partnerInput.value.trim() || '對方';
+    localStorage.setItem(STORAGE_PAYER_PARTNER_LABEL, payerPartnerLabel);
+    applyPayerLabels(); renderExpenses();
+  };
+
+  // 拍照辨識偏好
+  const ocrSel = document.getElementById('ocrPrefSelect');
+  ocrSel.value = ocrPref;
+  ocrSel.onchange = ()=>{
+    ocrPref = ocrSel.value;
+    localStorage.setItem(STORAGE_OCR_PREF, ocrPref);
+  };
+
+  // 顯示已完成待辦
+  const doneToggle = document.getElementById('showDoneToggle');
+  doneToggle.classList.toggle('on', showDoneTodos);
+  doneToggle.onclick = ()=>{
+    showDoneTodos = !showDoneTodos;
+    localStorage.setItem(STORAGE_SHOW_DONE, showDoneTodos ? 'on' : 'off');
+    doneToggle.classList.toggle('on', showDoneTodos);
+    renderTodos();
+  };
+
+  // 預設優先順序
+  const prioritySel = document.getElementById('defaultPrioritySelect');
+  prioritySel.value = defaultPriority;
+  prioritySel.onchange = ()=>{
+    defaultPriority = prioritySel.value;
+    localStorage.setItem(STORAGE_DEFAULT_PRIORITY, defaultPriority);
+  };
+}
+
+function renderManageCat(){ renderSettingsPanel(); }
+function renderManagePay(){ renderSettingsPanel(); }
+
+function renderManageList(containerId, list, handlers){
+  const wrap = document.getElementById(containerId);
+  wrap.innerHTML = list.map((name,i)=>`
+    <div class="manage-list-row">
+      <span class="name">${name}</span>
+      <button class="mv-up" data-i="${i}" ${i===0?'disabled':''} type="button">▲</button>
+      <button class="mv-down" data-i="${i}" ${i===list.length-1?'disabled':''} type="button">▼</button>
+      <button class="rename-btn" data-i="${i}" type="button">✏️</button>
+      <button class="danger del-btn" data-i="${i}" type="button">🗑</button>
+    </div>
+  `).join('');
+  wrap.onclick = (e)=>{
+    const i = Number(e.target.dataset.i);
+    if(isNaN(i)) return;
+    if(e.target.classList.contains('mv-up') && i>0) handlers.onMove(i, i-1);
+    else if(e.target.classList.contains('mv-down') && i<list.length-1) handlers.onMove(i, i+1);
+    else if(e.target.classList.contains('rename-btn')){
+      const newName = prompt('修改名稱：', list[i]);
+      if(newName && newName.trim()) handlers.onRename(i, newName.trim());
+    } else if(e.target.classList.contains('del-btn')){
+      if(confirm(`確定要刪除「${list[i]}」嗎？（已存在的紀錄不會被刪除，只是之後不會再出現在選單裡）`)) handlers.onDelete(i);
+    }
+  };
+}
+
+/* ---- 資料匯出 / 清除 ---- */
+document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
+  const backup = {
+    exportedAt: new Date().toISOString(),
+    recipes, shopping, expenses, todos, categories, payments,
+  };
+  const json = JSON.stringify(backup, null, 2);
+  const fileName = '小日子備份_' + todayStr() + '.json';
+  try {
+    if(navigator.canShare && window.File){
+      const file = new File([json], fileName, { type:'application/json' });
+      if(navigator.canShare({ files:[file] })){
+        await navigator.share({ files:[file], title:'小日子資料備份' });
+        return;
+      }
+    }
+  } catch(err){
+    if(err && err.name === 'AbortError') return;
+  }
+  const blob = new Blob([json], { type:'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = fileName;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 5000);
+});
+
+document.getElementById('clearLocalDataBtn').addEventListener('click', ()=>{
+  const ok = confirm('這會清除手機本機上的所有資料（料理、記帳、採買、待辦），且無法復原！雲端試算表的資料不會受影響，事後可以用「從雲端還原資料」拿回來。確定要清除嗎？');
+  if(!ok) return;
+  [STORAGE_RECIPES, STORAGE_SHOPPING, STORAGE_EXPENSES, STORAGE_CATEGORIES, STORAGE_PAYMENTS, STORAGE_TODOS].forEach(k=>localStorage.removeItem(k));
+  recipes = []; shopping = []; expenses = []; todos = [];
+  categories = ['飼料','醫療','用品']; payments = ['現金','信用卡'];
+  saveCategories(); savePayments();
+  renderRecipes(); renderShopping(); renderCategoryChips(); renderExpenses(); renderTodos(); renderReminders(); renderHome();
+  settingsModalEl.classList.remove('show');
+  showToast('已清除本機資料');
+});
 
 /* ============ 初始化 ============ */
 renderRecipes();
