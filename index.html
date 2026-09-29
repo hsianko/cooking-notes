@@ -426,7 +426,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v6.1</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v6.2</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -838,6 +838,14 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v6.2',
+    date: '2026-09-26',
+    changes: [
+      '修正多類別分配的類別下拉選單：尚未選擇時瀏覽器會誤顯示成第一個類別，導致明明畫面看起來選好了卻無法儲存，現在會明確顯示「請選擇類別...」',
+      '儲存失敗的提示訊息改為更明確指出是缺類別還是缺金額',
+    ],
+  },
   {
     version: 'v6.1',
     date: '2026-09-22',
@@ -1546,7 +1554,8 @@ const expenseFormCard = document.getElementById('expenseFormModal');
 let splitRows = [{ category:'', amount:'' }];
 
 function categoryOptionsHtml(selected){
-  return categories.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('')
+  const placeholder = selected ? '' : '<option value="" selected disabled>請選擇類別...</option>';
+  return placeholder + categories.map(c=>`<option value="${c}" ${c===selected?'selected':''}>${c}</option>`).join('')
     + '<option value="__add__">＋ 新增類別...</option>';
 }
 
@@ -1692,7 +1701,11 @@ document.getElementById('saveExpenseBtn').addEventListener('click', ()=>{
   const note = document.getElementById('e-note').value.trim();
   const validRows = splitRows.filter(r => r.category && parseFloat(r.amount) > 0);
 
-  if(validRows.length === 0){ showToast('請至少填寫一筆類別與金額'); return; }
+  if(validRows.length === 0){
+    const hasEmptyCategory = splitRows.some(r => !r.category && parseFloat(r.amount) > 0);
+    showToast(hasEmptyCategory ? '請幫這一列選擇類別（下拉選單目前還沒選）' : '請至少填寫一筆類別與金額');
+    return;
+  }
 
   if(editingExpenseId){
     const row = validRows[0];
