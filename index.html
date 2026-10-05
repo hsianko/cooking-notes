@@ -365,7 +365,9 @@ textarea.field{ min-height:56px; resize:vertical; }
 .todo-group-empty{ font-size:12.5px; color:var(--muted); padding:9px 0; }
 
 /* ===== 喵喵日曆 ===== */
-.cal-grid{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; margin-top:10px; overflow:hidden; }
+.cal-grid{ margin-top:10px; }
+.cal-header-row{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; }
+.cal-week-row{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; margin-top:4px; }
 .cal-weekday{ text-align:center; font-size:10.5px; color:var(--muted); font-weight:600; padding-bottom:4px; min-width:0; }
 .cal-cell{
   min-width:0; height:48px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center;
@@ -464,7 +466,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.1</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.2</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -732,8 +734,8 @@ textarea.field{ min-height:56px; resize:vertical; }
     <label class="field-label">選擇貓咪（可複選）</label>
     <div id="cl-cat-select"></div>
 
-    <label class="field-label">事項類型</label>
-    <select class="field" id="cl-type"></select>
+    <label class="field-label">事項類型（可複選）</label>
+    <div id="cl-type-select"></div>
 
     <label class="field-label">備註（選填）</label>
     <textarea class="field" id="cl-note" placeholder="例如：這次有點抗拒" style="min-height:60px;"></textarea>
@@ -970,6 +972,15 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.2',
+    date: '2026-10-05',
+    changes: [
+      '修正月曆第一週與第二週中間莫名空一列的跑版問題，改成每週各自獨立成一個grid row',
+      '喵喵日曆的紀錄新增「編輯」功能，可以修改日期、貓咪、事項類型、備註',
+      '新增紀錄的「事項類型」改為可複選標籤，一次勾選多個類型會自動依貓咪×類型組合拆成對應筆數',
+    ],
+  },
   {
     version: 'v7.1',
     date: '2026-10-04',
@@ -2509,6 +2520,8 @@ let groomSchedules = JSON.parse(localStorage.getItem(STORAGE_GROOM_SCHEDULES) ||
 let catCalMonthOffset = 0;
 let catCalSelectedDate = null;
 let selectedLogCatIds = [];
+let selectedLogTypes = [];
+let editingGroomLogId = null;
 
 function saveCats(){ localStorage.setItem(STORAGE_CATS, JSON.stringify(cats)); }
 function saveGroomTypes(){ localStorage.setItem(STORAGE_GROOM_TYPES, JSON.stringify(groomTypes)); }
@@ -2529,27 +2542,40 @@ function renderCatCalendar(){
   const daysInMonth = new Date(year, month, 0).getDate();
   const todayS = todayStr();
 
-  let html = ['日','一','二','三','四','五','六'].map(w=>`<div class="cal-weekday">${w}</div>`).join('');
-  for(let i=0;i<startWeekday;i++) html += '<div class="cal-cell empty"></div>';
+  // 建立完整的格子陣列，每週固定7格，前後不足處補 null，徹底避免自動換行跑位
+  const cells = [];
+  for(let i=0;i<startWeekday;i++) cells.push(null);
+  for(let d=1; d<=daysInMonth; d++) cells.push(d);
+  while(cells.length % 7 !== 0) cells.push(null);
 
-  for(let d=1; d<=daysInMonth; d++){
-    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayLogs = groomLogs.filter(l=>l.date===dateStr);
-    const uniqueCatIds = [...new Set(dayLogs.map(l=>l.catId))];
-    const dots = uniqueCatIds.map(cid=>{
-      const cat = cats.find(c=>c.id===cid);
-      if(!cat) return '';
-      return cat.avatar
-        ? `<img src="${cat.avatar}" class="cal-avatar-dot" alt="${cat.name}">`
-        : `<span class="cal-dot" style="background:${cat.color};"></span>`;
+  const headerHtml = '<div class="cal-header-row">' +
+    ['日','一','二','三','四','五','六'].map(w=>`<div class="cal-weekday">${w}</div>`).join('') +
+    '</div>';
+
+  let weeksHtml = '';
+  for(let w=0; w<cells.length; w+=7){
+    const weekCells = cells.slice(w, w+7).map(d=>{
+      if(d===null) return '<div class="cal-cell empty"></div>';
+      const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      const dayLogs = groomLogs.filter(l=>l.date===dateStr);
+      const uniqueCatIds = [...new Set(dayLogs.map(l=>l.catId))];
+      const dots = uniqueCatIds.map(cid=>{
+        const cat = cats.find(c=>c.id===cid);
+        if(!cat) return '';
+        return cat.avatar
+          ? `<img src="${cat.avatar}" class="cal-avatar-dot" alt="${cat.name}">`
+          : `<span class="cal-dot" style="background:${cat.color};"></span>`;
+      }).join('');
+      const classes = ['cal-cell'];
+      if(dateStr===todayS) classes.push('today');
+      if(dateStr===catCalSelectedDate) classes.push('selected');
+      return `<div class="${classes.join(' ')}" data-date="${dateStr}">${d}<div class="cal-dots">${dots}</div></div>`;
     }).join('');
-    const classes = ['cal-cell'];
-    if(dateStr===todayS) classes.push('today');
-    if(dateStr===catCalSelectedDate) classes.push('selected');
-    html += `<div class="${classes.join(' ')}" data-date="${dateStr}">${d}<div class="cal-dots">${dots}</div></div>`;
+    weeksHtml += `<div class="cal-week-row">${weekCells}</div>`;
   }
+
   const grid = document.getElementById('catCalGrid');
-  grid.innerHTML = html;
+  grid.innerHTML = headerHtml + weeksHtml;
   grid.querySelectorAll('.cal-cell:not(.empty)').forEach(cell=>{
     cell.addEventListener('click', ()=>{
       catCalSelectedDate = cell.dataset.date;
@@ -2582,9 +2608,11 @@ function renderCatDayDetail(){
         <div class="cat-name">${cat?cat.name:'(已刪除)'}　<span class="type-name">${l.type}</span></div>
         ${l.note ? `<div class="note"></div>` : ''}
       </div>
+      <button class="icon-btn edit-log-btn">✏️</button>
       <button class="icon-btn del-log-btn">✕</button>
     `;
     if(l.note) row.querySelector('.note').textContent = l.note;
+    row.querySelector('.edit-log-btn').addEventListener('click', ()=> editGroomLog(l.id));
     row.querySelector('.del-log-btn').addEventListener('click', ()=>{
       groomLogs = groomLogs.filter(x=>x.id!==l.id);
       saveGroomLogs();
@@ -2606,60 +2634,110 @@ function renderCatSelectChips(){
   wrap.querySelectorAll('.cat-chip-select').forEach(chip=>{
     chip.addEventListener('click', ()=>{
       const id = chip.dataset.id;
-      if(selectedLogCatIds.includes(id)) selectedLogCatIds = selectedLogCatIds.filter(x=>x!==id);
-      else selectedLogCatIds.push(id);
+      if(editingGroomLogId){
+        selectedLogCatIds = [id]; // 編輯既有紀錄時只能屬於一隻貓
+      } else {
+        if(selectedLogCatIds.includes(id)) selectedLogCatIds = selectedLogCatIds.filter(x=>x!==id);
+        else selectedLogCatIds.push(id);
+      }
       renderCatSelectChips();
     });
   });
 }
 
-function renderGroomTypeSelect(){
-  const sel = document.getElementById('cl-type');
-  sel.innerHTML = groomTypes.map(t=>`<option value="${t}">${t}</option>`).join('') + '<option value="__add__">＋ 新增類型...</option>';
-}
-document.getElementById('cl-type').addEventListener('change', function(){
-  if(this.value === '__add__'){
+function renderGroomTypeChips(){
+  const wrap = document.getElementById('cl-type-select');
+  wrap.innerHTML = groomTypes.map(t=>`
+    <span class="cat-chip-select ${selectedLogTypes.includes(t)?'active':''}" data-type="${t}">${t}</span>
+  `).join('') + '<span class="cat-chip-select" id="addTypeInlineBtn">＋ 新增類型</span>';
+  wrap.querySelectorAll('[data-type]').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const t = chip.dataset.type;
+      if(editingGroomLogId){
+        selectedLogTypes = [t]; // 編輯既有紀錄時只能是一個類型
+      } else {
+        if(selectedLogTypes.includes(t)) selectedLogTypes = selectedLogTypes.filter(x=>x!==t);
+        else selectedLogTypes.push(t);
+      }
+      renderGroomTypeChips();
+    });
+  });
+  document.getElementById('addTypeInlineBtn').addEventListener('click', ()=>{
     const name = prompt('新增事項類型：');
     if(name && name.trim()){
       groomTypes.push(name.trim());
       saveGroomTypes();
-      renderGroomTypeSelect();
-      this.value = name.trim();
-    } else {
-      this.value = groomTypes[0] || '';
+      if(editingGroomLogId) selectedLogTypes = [name.trim()];
+      else selectedLogTypes.push(name.trim());
+      renderGroomTypeChips();
     }
-  }
-});
+  });
+}
 
 const catLogFormModal = document.getElementById('catLogFormModal');
 document.getElementById('openCatLogFormBtn').addEventListener('click', ()=>{
+  editingGroomLogId = null;
+  document.getElementById('catLogFormTitle').textContent = '新增紀錄';
   document.getElementById('cl-date').value = catCalSelectedDate || todayStr();
   document.getElementById('cl-note').value = '';
   selectedLogCatIds = [];
+  selectedLogTypes = [];
   renderCatSelectChips();
-  renderGroomTypeSelect();
+  renderGroomTypeChips();
   catLogFormModal.classList.add('show');
 });
-document.getElementById('closeCatLogFormBtn').addEventListener('click', ()=> catLogFormModal.classList.remove('show'));
-catLogFormModal.addEventListener('click', (e)=>{ if(e.target===catLogFormModal) catLogFormModal.classList.remove('show'); });
+document.getElementById('closeCatLogFormBtn').addEventListener('click', ()=>{
+  editingGroomLogId = null;
+  catLogFormModal.classList.remove('show');
+});
+catLogFormModal.addEventListener('click', (e)=>{
+  if(e.target===catLogFormModal){ editingGroomLogId = null; catLogFormModal.classList.remove('show'); }
+});
+
+function editGroomLog(id){
+  const log = groomLogs.find(l=>l.id===id);
+  if(!log) return;
+  editingGroomLogId = id;
+  document.getElementById('catLogFormTitle').textContent = '編輯紀錄';
+  document.getElementById('cl-date').value = log.date;
+  document.getElementById('cl-note').value = log.note || '';
+  selectedLogCatIds = [log.catId];
+  selectedLogTypes = [log.type];
+  renderCatSelectChips();
+  renderGroomTypeChips();
+  catLogFormModal.classList.add('show');
+  catLogFormModal.scrollIntoView({behavior:'smooth', block:'start'});
+}
 
 document.getElementById('saveCatLogBtn').addEventListener('click', ()=>{
   const date = document.getElementById('cl-date').value || todayStr();
-  const type = document.getElementById('cl-type').value;
   const note = document.getElementById('cl-note').value.trim();
   if(selectedLogCatIds.length===0){ showToast('請至少選擇一隻貓咪'); return; }
-  if(!type){ showToast('請選擇事項類型'); return; }
-  selectedLogCatIds.forEach(catId=>{
-    groomLogs.unshift({ id: Date.now().toString()+Math.random().toString(36).slice(2,6), date, catId, type, note });
-  });
+  if(selectedLogTypes.length===0){ showToast('請至少選擇一個事項類型'); return; }
+
+  if(editingGroomLogId){
+    const catId = selectedLogCatIds[0];
+    const type = selectedLogTypes[0];
+    groomLogs = groomLogs.map(l=> l.id===editingGroomLogId ? { ...l, date, catId, type, note } : l);
+    showToast('已更新紀錄');
+  } else {
+    let count = 0;
+    selectedLogCatIds.forEach(catId=>{
+      selectedLogTypes.forEach(type=>{
+        groomLogs.unshift({ id: Date.now().toString()+Math.random().toString(36).slice(2,6)+count, date, catId, type, note });
+        count++;
+      });
+    });
+    showToast(`已新增 ${count} 筆紀錄`);
+  }
   saveGroomLogs();
   catCalSelectedDate = date;
+  editingGroomLogId = null;
   catLogFormModal.classList.remove('show');
   renderCatCalendar();
   renderCatDayDetail();
   renderCatReminders();
   renderHome();
-  showToast(`已新增 ${selectedLogCatIds.length} 筆紀錄`);
 });
 
 document.getElementById('catPrevMonthBtn').addEventListener('click', ()=>{
