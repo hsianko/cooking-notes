@@ -364,6 +364,44 @@ textarea.field{ min-height:56px; resize:vertical; }
 .pri-normal{ background:var(--pillBg); color:var(--sageDark); }
 .todo-group-empty{ font-size:12.5px; color:var(--muted); padding:9px 0; }
 
+/* ===== 喵喵日曆 ===== */
+.cal-grid{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; margin-top:10px; overflow:hidden; }
+.cal-weekday{ text-align:center; font-size:10.5px; color:var(--muted); font-weight:600; padding-bottom:4px; min-width:0; }
+.cal-cell{
+  min-width:0; height:48px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-size:12.5px; cursor:pointer; position:relative; background:var(--field); border:1px solid transparent; overflow:hidden;
+}
+.cal-cell.empty{ background:transparent; cursor:default; }
+.cal-cell.today{ border-color:var(--rust); font-weight:700; }
+.cal-cell.selected{ background:var(--rustSoft); }
+.cal-dots{ display:flex; gap:2px; margin-top:2px; flex-wrap:wrap; justify-content:center; max-width:34px; }
+.cal-dot{ width:5px; height:5px; border-radius:50%; }
+
+.cat-chip-select{
+  display:inline-flex; align-items:center; gap:6px; padding:8px 12px; border-radius:20px;
+  border:1.5px solid var(--cardBorder); font-size:12.5px; cursor:pointer; margin:0 6px 8px 0;
+}
+.cat-chip-select.active{ border-color:var(--ink); font-weight:600; }
+.cat-dot-sw{ width:11px; height:11px; border-radius:50%; flex-shrink:0; }
+.cat-avatar-img{ border-radius:50%; object-fit:cover; flex-shrink:0; display:block; }
+.cal-avatar-dot{ width:13px; height:13px; border-radius:50%; object-fit:cover; flex-shrink:0; }
+
+.day-log-row{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--cardBorder); }
+.day-log-row:last-child{ border-bottom:none; }
+.day-log-row .cat-dot-sw{ width:9px; height:9px; }
+.day-log-row .info{ flex:1; }
+.day-log-row .cat-name{ font-size:13px; font-weight:600; }
+.day-log-row .type-name{ font-size:11.5px; color:var(--muted); }
+.day-log-row .note{ font-size:11.5px; color:var(--muted); margin-top:1px; }
+
+.schedule-row{ display:flex; align-items:center; gap:8px; padding:9px 0; border-bottom:1px solid var(--cardBorder); font-size:12.5px; }
+.schedule-row:last-child{ border-bottom:none; }
+.schedule-row .info{ flex:1; }
+
+.color-swatch-row{ display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+.color-swatch{ width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent; }
+.color-swatch.active{ border-color:var(--ink); }
+
 /* ===== 首頁 ===== */
 .greeting{ font-size:13px; color:var(--muted); margin:10px 0 0; }
 .greeting b{ color:var(--ink); font-family:'Fraunces',serif; font-weight:600; font-size:16px; }
@@ -426,7 +464,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v6.2</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.1</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -471,6 +509,14 @@ textarea.field{ min-height:56px; resize:vertical; }
         <span class="sc-link">查看全部 ›</span>
       </div>
       <div id="homeShopBody"></div>
+    </div>
+
+    <div class="section-card" id="homeCatCard">
+      <div class="sc-head">
+        <span class="sc-title"><span class="emoji">🐱</span>喵喵日曆</span>
+        <span class="sc-link">查看全部 ›</span>
+      </div>
+      <div id="homeCatBody"></div>
     </div>
   </section>
 
@@ -650,6 +696,66 @@ textarea.field{ min-height:56px; resize:vertical; }
     <div class="list" id="todoList"></div>
   </section>
 
+  <!-- 喵喵日曆 -->
+  <section class="tabpanel" id="catcal">
+    <div id="catReminderWrap"></div>
+
+    <div class="money-summary">
+      <div class="month-total">
+        <div class="month-nav">
+          <button class="month-nav-btn" id="catPrevMonthBtn">◀</button>
+          <span class="lbl" id="catMonthLabel">9月</span>
+          <button class="month-nav-btn" id="catNextMonthBtn">▶</button>
+        </div>
+        <button class="icon-btn" id="openScheduleBtn" style="font-size:18px;">⏰</button>
+      </div>
+      <div class="cal-grid" id="catCalGrid"></div>
+    </div>
+
+    <button class="add-big-btn" id="openCatLogFormBtn">＋ 新增紀錄</button>
+
+    <div id="catDayDetail"></div>
+  </section>
+
+</div>
+
+<div class="modal-overlay" id="catLogFormModal">
+  <div class="form-card" id="catLogFormCard">
+    <div class="form-head">
+      <span class="form-title" id="catLogFormTitle">新增紀錄</span>
+      <button class="icon-btn" id="closeCatLogFormBtn">✕</button>
+    </div>
+
+    <label class="field-label">日期</label>
+    <input class="field" type="date" id="cl-date">
+
+    <label class="field-label">選擇貓咪（可複選）</label>
+    <div id="cl-cat-select"></div>
+
+    <label class="field-label">事項類型</label>
+    <select class="field" id="cl-type"></select>
+
+    <label class="field-label">備註（選填）</label>
+    <textarea class="field" id="cl-note" placeholder="例如：這次有點抗拒" style="min-height:60px;"></textarea>
+
+    <button class="save-btn" id="saveCatLogBtn">儲存</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="scheduleModal">
+  <div class="modal-sheet">
+    <div class="modal-head">
+      <span class="modal-title">提醒排程設定</span>
+      <button class="icon-btn" id="closeScheduleBtn">✕</button>
+    </div>
+    <div id="scheduleList"></div>
+    <div class="settings-add-row" style="flex-wrap:wrap; gap:8px; margin-top:12px;">
+      <select class="field" id="sch-cat" style="flex:1; min-width:90px;"></select>
+      <select class="field" id="sch-type" style="flex:1; min-width:90px;"></select>
+      <input class="field" type="number" id="sch-days" placeholder="間隔天數" style="flex:1; min-width:80px;">
+    </div>
+    <button class="checkout-btn" id="addScheduleBtn" style="margin-top:10px;">＋ 新增排程</button>
+  </div>
 </div>
 
 <div class="bottom-bar" id="bottomBar">
@@ -672,6 +778,10 @@ textarea.field{ min-height:56px; resize:vertical; }
   <button class="bt-item" data-tab="todo">
     <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
     <span class="label-pill">待辦</span><span class="bt-badge" id="todoBadge" style="display:none;">0</span>
+  </button>
+  <button class="bt-item" data-tab="catcal">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="6.5"/><path d="M8 8l-2-4 3.5 2.5M16 8l2-4-3.5 2.5"/></svg>
+    <span class="label-pill">喵喵</span><span class="bt-badge" id="catBadge" style="display:none;">0</span>
   </button>
 </div>
 
@@ -737,6 +847,23 @@ textarea.field{ min-height:56px; resize:vertical; }
     </div>
 
     <div class="settings-section">
+      <div class="settings-section-title">喵喵日曆</div>
+      <div class="setting-row"><div class="lbl">管理貓咪</div></div>
+      <div id="manageCatsList"></div>
+      <div class="settings-add-row">
+        <input class="settings-text-input" id="newCatPetInput" placeholder="新增貓咪名字">
+        <button class="add-small-btn" id="addCatPetBtn" type="button">＋</button>
+      </div>
+
+      <div class="setting-row" style="margin-top:14px;"><div class="lbl">管理事項類型</div></div>
+      <div id="manageGroomTypeList"></div>
+      <div class="settings-add-row">
+        <input class="settings-text-input" id="newGroomTypeInput" placeholder="新增事項類型（例如：點耳藥）">
+        <button class="add-small-btn" id="addGroomTypeBtn" type="button">＋</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
       <div class="settings-section-title">待辦事項</div>
       <div class="setting-row">
         <div class="lbl">顯示已完成事項</div>
@@ -788,6 +915,10 @@ const STORAGE_PAYER_PARTNER_LABEL = 'xiaorizi-payer-partner-label';
 const STORAGE_OCR_PREF = 'xiaorizi-ocr-pref';
 const STORAGE_SHOW_DONE = 'xiaorizi-show-done';
 const STORAGE_DEFAULT_PRIORITY = 'xiaorizi-default-priority';
+const STORAGE_CATS = 'xiaorizi-cats';
+const STORAGE_GROOM_TYPES = 'xiaorizi-groom-types';
+const STORAGE_GROOM_LOGS = 'xiaorizi-groom-logs';
+const STORAGE_GROOM_SCHEDULES = 'xiaorizi-groom-schedules';
 
 const SHEET_API_URL = 'https://script.google.com/macros/s/AKfycbxlpVAUCOimnIqwrOBq54cpKHt9QoyipLyJu43BPV-etN2eS0dprYCB99ylM_qY3CE/exec';
 const SHEET_TOKEN = 'xiaorizi2026';
@@ -811,7 +942,8 @@ setInterval(updateClock, 1000*30);
 /* ============ 設定狀態 ============ */
 let appTheme = localStorage.getItem(STORAGE_THEME) || 'warm';
 let navIconOn = localStorage.getItem(STORAGE_NAV_ICON) !== 'off';
-let homeOrder = JSON.parse(localStorage.getItem(STORAGE_HOME_ORDER) || '["todo","money","recipe","shop"]');
+let homeOrder = JSON.parse(localStorage.getItem(STORAGE_HOME_ORDER) || '["todo","money","recipe","shop","cat"]');
+if(!homeOrder.includes('cat')) homeOrder.push('cat'); // 向後相容：舊使用者的設定裡還沒有這張新卡片
 let homePreviewCount = parseInt(localStorage.getItem(STORAGE_HOME_PREVIEW_COUNT) || '3', 10);
 let payerMeLabel = localStorage.getItem(STORAGE_PAYER_ME_LABEL) || '自己';
 let payerPartnerLabel = localStorage.getItem(STORAGE_PAYER_PARTNER_LABEL) || '對方';
@@ -838,6 +970,27 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.1',
+    date: '2026-10-04',
+    changes: [
+      '修正喵喵日曆的月曆格子跑版溢出畫面的問題',
+      '底部導覽文字從「喵喵日曆」縮短為「喵喵」，統一跟其他分頁一樣兩個字',
+      '四隻貓咪換上真實大頭照（錢錢、蛋蛋、炭炭、芊芊），月曆標記、新增紀錄選單、設定管理清單、提醒橫幅、首頁卡片都改用頭像',
+      '預設貓咪改成真實名字與對應毛色（錢錢橘棕、蛋蛋銀灰、炭炭咖啡、芊芊淺灰藍），舊使用者的通用預設值會自動一次性升級',
+    ],
+  },
+  {
+    version: 'v7.0',
+    date: '2026-09-26',
+    changes: [
+      '新增「喵喵日曆」分頁：月曆檢視，有紀錄的日期會用貓咪專屬顏色標記，點日期可查看/刪除當天紀錄',
+      '新增紀錄可一次複選多隻貓咪，一次存成對應筆數（例如一次幫4隻都記錄剪指甲）',
+      '貓咪、事項類型都可以在「設定」裡自行新增、改名、換色、排序、刪除',
+      '新增「提醒排程」：設定某隻貓某件事的間隔天數，到期會在喵喵日曆頁面與首頁顯示提醒',
+      '首頁新增喵喵日曆摘要卡片，顯示目前逾期的保養提醒',
+    ],
+  },
   {
     version: 'v6.2',
     date: '2026-09-26',
@@ -1202,6 +1355,7 @@ const subtitles = {
   shopping: '烹煮方式 · 時間 · 採買清單',
   money: '記錄每一筆生活支出',
   todo: '待辦事項與提醒',
+  catcal: '記錄貓咪們的美容保養',
 };
 document.querySelectorAll('.bt-item').forEach(btn=>{
   btn.addEventListener('click', ()=>{
@@ -2323,6 +2477,384 @@ function renderReminders(){
   });
 }
 
+/* ============ 喵喵日曆 ============ */
+const AVATAR_QIANQIAN = "data:image/jpeg;base64,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";
+const AVATAR_DANDAN = "data:image/jpeg;base64,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";
+const AVATAR_TANTAN = "data:image/jpeg;base64,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";
+const AVATAR_QIANXIAN = "data:image/jpeg;base64,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";
+const CAT_COLOR_PALETTE = ['#C1622C','#7C8B5E','#5C7FA6','#C1453D','#D9A23D','#8B6FB0','#3E8E85','#B0556F'];
+
+function catAvatarHtml(cat, size){
+  if(!cat) return `<span class="cat-dot-sw" style="background:#999; width:${size}px; height:${size}px;"></span>`;
+  return cat.avatar
+    ? `<img src="${cat.avatar}" class="cat-avatar-img" style="width:${size}px; height:${size}px;" alt="${cat.name}">`
+    : `<span class="cat-dot-sw" style="background:${cat.color}; width:${size}px; height:${size}px;"></span>`;
+}
+
+const DEFAULT_CATS = [
+  { id:'c1', name:'錢錢', color:'#B5651D', avatar: AVATAR_QIANQIAN },
+  { id:'c2', name:'蛋蛋', color:'#8A8F98', avatar: AVATAR_DANDAN },
+  { id:'c3', name:'炭炭', color:'#6F4E37', avatar: AVATAR_TANTAN },
+  { id:'c4', name:'芊芊', color:'#AFC3CC', avatar: AVATAR_QIANXIAN },
+];
+let cats = JSON.parse(localStorage.getItem(STORAGE_CATS) || 'null');
+const isOldGenericCats = cats && cats.length===4 && cats.every((c,i)=> c.name === '貓咪'+(i+1));
+if(!cats || isOldGenericCats){
+  cats = DEFAULT_CATS;
+  localStorage.setItem(STORAGE_CATS, JSON.stringify(cats));
+}
+let groomTypes = JSON.parse(localStorage.getItem(STORAGE_GROOM_TYPES) || '["洗澡","剪指甲","梳毛"]');
+let groomLogs = JSON.parse(localStorage.getItem(STORAGE_GROOM_LOGS) || '[]');
+let groomSchedules = JSON.parse(localStorage.getItem(STORAGE_GROOM_SCHEDULES) || '[]');
+let catCalMonthOffset = 0;
+let catCalSelectedDate = null;
+let selectedLogCatIds = [];
+
+function saveCats(){ localStorage.setItem(STORAGE_CATS, JSON.stringify(cats)); }
+function saveGroomTypes(){ localStorage.setItem(STORAGE_GROOM_TYPES, JSON.stringify(groomTypes)); }
+function saveGroomLogs(){ localStorage.setItem(STORAGE_GROOM_LOGS, JSON.stringify(groomLogs)); }
+function saveGroomSchedules(){ localStorage.setItem(STORAGE_GROOM_SCHEDULES, JSON.stringify(groomSchedules)); }
+
+function catTargetYm(){
+  const d = new Date();
+  d.setMonth(d.getMonth() + catCalMonthOffset);
+  return { year: d.getFullYear(), month: d.getMonth()+1 };
+}
+
+function renderCatCalendar(){
+  const { year, month } = catTargetYm();
+  document.getElementById('catMonthLabel').textContent = `${month}月`;
+  const firstDay = new Date(year, month-1, 1);
+  const startWeekday = firstDay.getDay();
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const todayS = todayStr();
+
+  let html = ['日','一','二','三','四','五','六'].map(w=>`<div class="cal-weekday">${w}</div>`).join('');
+  for(let i=0;i<startWeekday;i++) html += '<div class="cal-cell empty"></div>';
+
+  for(let d=1; d<=daysInMonth; d++){
+    const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const dayLogs = groomLogs.filter(l=>l.date===dateStr);
+    const uniqueCatIds = [...new Set(dayLogs.map(l=>l.catId))];
+    const dots = uniqueCatIds.map(cid=>{
+      const cat = cats.find(c=>c.id===cid);
+      if(!cat) return '';
+      return cat.avatar
+        ? `<img src="${cat.avatar}" class="cal-avatar-dot" alt="${cat.name}">`
+        : `<span class="cal-dot" style="background:${cat.color};"></span>`;
+    }).join('');
+    const classes = ['cal-cell'];
+    if(dateStr===todayS) classes.push('today');
+    if(dateStr===catCalSelectedDate) classes.push('selected');
+    html += `<div class="${classes.join(' ')}" data-date="${dateStr}">${d}<div class="cal-dots">${dots}</div></div>`;
+  }
+  const grid = document.getElementById('catCalGrid');
+  grid.innerHTML = html;
+  grid.querySelectorAll('.cal-cell:not(.empty)').forEach(cell=>{
+    cell.addEventListener('click', ()=>{
+      catCalSelectedDate = cell.dataset.date;
+      renderCatCalendar();
+      renderCatDayDetail();
+    });
+  });
+}
+
+function renderCatDayDetail(){
+  const wrap = document.getElementById('catDayDetail');
+  if(!catCalSelectedDate){
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon">🐱</div><p class="empty-text">點選月曆上的日期查看當天紀錄</p></div>';
+    return;
+  }
+  const dayLogs = groomLogs.filter(l=>l.date===catCalSelectedDate);
+  if(dayLogs.length===0){
+    wrap.innerHTML = `<div class="recipe-card"><p style="font-size:12.5px; color:var(--muted); margin:0;">${catCalSelectedDate} 沒有紀錄</p></div>`;
+    return;
+  }
+  const card = document.createElement('div');
+  card.className = 'recipe-card';
+  dayLogs.forEach(l=>{
+    const cat = cats.find(c=>c.id===l.catId);
+    const row = document.createElement('div');
+    row.className = 'day-log-row';
+    row.innerHTML = `
+      ${catAvatarHtml(cat, 24)}
+      <div class="info">
+        <div class="cat-name">${cat?cat.name:'(已刪除)'}　<span class="type-name">${l.type}</span></div>
+        ${l.note ? `<div class="note"></div>` : ''}
+      </div>
+      <button class="icon-btn del-log-btn">✕</button>
+    `;
+    if(l.note) row.querySelector('.note').textContent = l.note;
+    row.querySelector('.del-log-btn').addEventListener('click', ()=>{
+      groomLogs = groomLogs.filter(x=>x.id!==l.id);
+      saveGroomLogs();
+      renderCatCalendar(); renderCatDayDetail(); renderCatReminders(); renderHome();
+    });
+    card.appendChild(row);
+  });
+  wrap.innerHTML = '';
+  wrap.appendChild(card);
+}
+
+function renderCatSelectChips(){
+  const wrap = document.getElementById('cl-cat-select');
+  wrap.innerHTML = cats.map(c=>`
+    <span class="cat-chip-select ${selectedLogCatIds.includes(c.id)?'active':''}" data-id="${c.id}">
+      ${catAvatarHtml(c, 18)}${c.name}
+    </span>
+  `).join('');
+  wrap.querySelectorAll('.cat-chip-select').forEach(chip=>{
+    chip.addEventListener('click', ()=>{
+      const id = chip.dataset.id;
+      if(selectedLogCatIds.includes(id)) selectedLogCatIds = selectedLogCatIds.filter(x=>x!==id);
+      else selectedLogCatIds.push(id);
+      renderCatSelectChips();
+    });
+  });
+}
+
+function renderGroomTypeSelect(){
+  const sel = document.getElementById('cl-type');
+  sel.innerHTML = groomTypes.map(t=>`<option value="${t}">${t}</option>`).join('') + '<option value="__add__">＋ 新增類型...</option>';
+}
+document.getElementById('cl-type').addEventListener('change', function(){
+  if(this.value === '__add__'){
+    const name = prompt('新增事項類型：');
+    if(name && name.trim()){
+      groomTypes.push(name.trim());
+      saveGroomTypes();
+      renderGroomTypeSelect();
+      this.value = name.trim();
+    } else {
+      this.value = groomTypes[0] || '';
+    }
+  }
+});
+
+const catLogFormModal = document.getElementById('catLogFormModal');
+document.getElementById('openCatLogFormBtn').addEventListener('click', ()=>{
+  document.getElementById('cl-date').value = catCalSelectedDate || todayStr();
+  document.getElementById('cl-note').value = '';
+  selectedLogCatIds = [];
+  renderCatSelectChips();
+  renderGroomTypeSelect();
+  catLogFormModal.classList.add('show');
+});
+document.getElementById('closeCatLogFormBtn').addEventListener('click', ()=> catLogFormModal.classList.remove('show'));
+catLogFormModal.addEventListener('click', (e)=>{ if(e.target===catLogFormModal) catLogFormModal.classList.remove('show'); });
+
+document.getElementById('saveCatLogBtn').addEventListener('click', ()=>{
+  const date = document.getElementById('cl-date').value || todayStr();
+  const type = document.getElementById('cl-type').value;
+  const note = document.getElementById('cl-note').value.trim();
+  if(selectedLogCatIds.length===0){ showToast('請至少選擇一隻貓咪'); return; }
+  if(!type){ showToast('請選擇事項類型'); return; }
+  selectedLogCatIds.forEach(catId=>{
+    groomLogs.unshift({ id: Date.now().toString()+Math.random().toString(36).slice(2,6), date, catId, type, note });
+  });
+  saveGroomLogs();
+  catCalSelectedDate = date;
+  catLogFormModal.classList.remove('show');
+  renderCatCalendar();
+  renderCatDayDetail();
+  renderCatReminders();
+  renderHome();
+  showToast(`已新增 ${selectedLogCatIds.length} 筆紀錄`);
+});
+
+document.getElementById('catPrevMonthBtn').addEventListener('click', ()=>{
+  catCalMonthOffset -= 1;
+  catCalSelectedDate = null;
+  renderCatCalendar(); renderCatDayDetail();
+});
+document.getElementById('catNextMonthBtn').addEventListener('click', ()=>{
+  catCalMonthOffset += 1;
+  catCalSelectedDate = null;
+  renderCatCalendar(); renderCatDayDetail();
+});
+
+/* ---- 下次該做提醒排程 ---- */
+function computeNextDue(catId, type, intervalDays){
+  const logs = groomLogs.filter(l=>l.catId===catId && l.type===type).sort((a,b)=> b.date.localeCompare(a.date));
+  if(logs.length===0) return null;
+  const last = new Date(logs[0].date + 'T00:00:00');
+  last.setDate(last.getDate() + intervalDays);
+  return last.toISOString().slice(0,10);
+}
+
+function renderCatReminders(){
+  const wrap = document.getElementById('catReminderWrap');
+  const today = todayStr();
+  const items = [];
+  groomSchedules.forEach(s=>{
+    const cat = cats.find(c=>c.id===s.catId);
+    if(!cat) return;
+    const nextDue = computeNextDue(s.catId, s.type, s.intervalDays);
+    if(!nextDue){
+      items.push({ cat, type:s.type, never:true });
+    } else if(nextDue <= today){
+      const daysOver = Math.floor((new Date(today+'T00:00:00') - new Date(nextDue+'T00:00:00'))/86400000);
+      items.push({ cat, type:s.type, daysOver });
+    }
+  });
+  const badge = document.getElementById('catBadge');
+  if(items.length>0){ badge.style.display='flex'; badge.textContent = items.length; }
+  else { badge.style.display='none'; }
+
+  wrap.innerHTML = items.map(it=>{
+    if(it.never){
+      return `<div class="reminder-banner today">${catAvatarHtml(it.cat, 18)} <span><b>${it.cat.name}</b> 還沒記錄過「${it.type}」</span></div>`;
+    }
+    return `<div class="reminder-banner">${catAvatarHtml(it.cat, 18)} <span><b>${it.cat.name}</b> 該「${it.type}」了（已超過${it.daysOver}天）</span></div>`;
+  }).join('');
+}
+
+const scheduleModalEl = document.getElementById('scheduleModal');
+document.getElementById('openScheduleBtn').addEventListener('click', ()=>{
+  document.getElementById('sch-cat').innerHTML = cats.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
+  document.getElementById('sch-type').innerHTML = groomTypes.map(t=>`<option value="${t}">${t}</option>`).join('');
+  renderScheduleList();
+  scheduleModalEl.classList.add('show');
+});
+document.getElementById('closeScheduleBtn').addEventListener('click', ()=> scheduleModalEl.classList.remove('show'));
+scheduleModalEl.addEventListener('click', (e)=>{ if(e.target===scheduleModalEl) scheduleModalEl.classList.remove('show'); });
+
+function renderScheduleList(){
+  const wrap = document.getElementById('scheduleList');
+  if(groomSchedules.length===0){
+    wrap.innerHTML = '<p style="font-size:12.5px; color:var(--muted);">還沒有設定任何排程</p>';
+    return;
+  }
+  wrap.innerHTML = groomSchedules.map(s=>{
+    const cat = cats.find(c=>c.id===s.catId);
+    return `
+      <div class="schedule-row">
+        ${catAvatarHtml(cat, 20)}
+        <span class="info">${cat?cat.name:'(已刪除)'} · ${s.type} · 每${s.intervalDays}天</span>
+        <button class="icon-btn del-sch-btn" data-id="${s.id}">✕</button>
+      </div>
+    `;
+  }).join('');
+  wrap.querySelectorAll('.del-sch-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      groomSchedules = groomSchedules.filter(s=>s.id!==btn.dataset.id);
+      saveGroomSchedules();
+      renderScheduleList(); renderCatReminders(); renderHome();
+    });
+  });
+}
+document.getElementById('addScheduleBtn').addEventListener('click', ()=>{
+  const catId = document.getElementById('sch-cat').value;
+  const type = document.getElementById('sch-type').value;
+  const days = parseInt(document.getElementById('sch-days').value, 10);
+  if(!catId || !type || !days || days<=0){ showToast('請完整填寫排程設定'); return; }
+  groomSchedules.push({ id: Date.now().toString(), catId, type, intervalDays: days });
+  saveGroomSchedules();
+  document.getElementById('sch-days').value='';
+  renderScheduleList(); renderCatReminders(); renderHome();
+});
+
+/* ---- 設定頁：管理貓咪 / 事項類型 ---- */
+function renderManageCatsSettings(){
+  const wrap = document.getElementById('manageCatsList');
+  wrap.innerHTML = cats.map((c,i)=>`
+    <div class="manage-list-row">
+      ${catAvatarHtml(c, 28)}
+      <span class="name">${c.name}</span>
+      <button class="rename-cat-btn" data-i="${i}" type="button">✏️</button>
+      <button class="recolor-cat-btn" data-i="${i}" type="button">🎨</button>
+      <button class="danger del-cat-btn" data-i="${i}" type="button">🗑</button>
+    </div>
+  `).join('');
+  wrap.onclick = (e)=>{
+    const i = Number(e.target.dataset.i);
+    if(isNaN(i)) return;
+    if(e.target.classList.contains('rename-cat-btn')){
+      const name = prompt('修改貓咪名字：', cats[i].name);
+      if(name && name.trim()){
+        cats[i].name = name.trim();
+        saveCats(); renderManageCatsSettings(); renderCatCalendar(); renderHome();
+      }
+    } else if(e.target.classList.contains('recolor-cat-btn')){
+      const idx = CAT_COLOR_PALETTE.indexOf(cats[i].color);
+      cats[i].color = CAT_COLOR_PALETTE[(idx+1) % CAT_COLOR_PALETTE.length];
+      saveCats(); renderManageCatsSettings(); renderCatCalendar();
+      showToast('已換色，可以再點一次繼續換下一個顏色');
+    } else if(e.target.classList.contains('del-cat-btn')){
+      if(confirm(`確定要刪除「${cats[i].name}」嗎？這隻貓咪過去的紀錄不會被刪除，但之後不能再新增牠的紀錄`)){
+        cats.splice(i,1);
+        saveCats(); renderManageCatsSettings(); renderCatCalendar(); renderHome();
+      }
+    }
+  };
+}
+document.getElementById('addCatPetBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('newCatPetInput');
+  const name = input.value.trim();
+  if(!name) return;
+  cats.push({ id:'c'+Date.now(), name, color: CAT_COLOR_PALETTE[cats.length % CAT_COLOR_PALETTE.length] });
+  saveCats();
+  input.value='';
+  renderManageCatsSettings();
+  renderCatCalendar();
+});
+
+function renderManageGroomTypes(){
+  renderManageList('manageGroomTypeList', groomTypes, {
+    onRename: (i, newName)=>{
+      const oldName = groomTypes[i];
+      groomLogs = groomLogs.map(l=> l.type===oldName ? {...l, type:newName} : l);
+      groomSchedules = groomSchedules.map(s=> s.type===oldName ? {...s, type:newName} : s);
+      groomTypes[i] = newName;
+      saveGroomTypes(); saveGroomLogs(); saveGroomSchedules();
+      renderManageGroomTypes(); renderCatCalendar(); renderCatReminders();
+    },
+    onDelete: (i)=>{
+      groomTypes.splice(i,1);
+      saveGroomTypes(); renderManageGroomTypes();
+    },
+    onMove: (from,to)=>{
+      const [item] = groomTypes.splice(from,1);
+      groomTypes.splice(to,0,item);
+      saveGroomTypes(); renderManageGroomTypes();
+    }
+  });
+}
+document.getElementById('addGroomTypeBtn').addEventListener('click', ()=>{
+  const input = document.getElementById('newGroomTypeInput');
+  const name = input.value.trim();
+  if(!name) return;
+  groomTypes.push(name);
+  saveGroomTypes();
+  input.value='';
+  renderManageGroomTypes();
+});
+
+/* ---- 首頁卡片 ---- */
+function renderCatHomeCard(){
+  const body = document.getElementById('homeCatBody');
+  const today = todayStr();
+  const dueItems = [];
+  groomSchedules.forEach(s=>{
+    const cat = cats.find(c=>c.id===s.catId);
+    if(!cat) return;
+    const nextDue = computeNextDue(s.catId, s.type, s.intervalDays);
+    if(!nextDue || nextDue<=today) dueItems.push({ cat, type:s.type, never: !nextDue });
+  });
+  if(groomSchedules.length===0){
+    body.innerHTML = '<p class="home-summary" style="margin:0;">還沒有設定提醒排程</p>';
+  } else if(dueItems.length===0){
+    body.innerHTML = '<p class="home-summary" style="margin:0;">目前沒有逾期的美容保養提醒 🎉</p>';
+  } else {
+    body.innerHTML = dueItems.slice(0,3).map(it=>`
+      <div class="todo-mini-row">
+        ${catAvatarHtml(it.cat, 18)}
+        <span class="todo-mini-name">${it.cat.name} 該「${it.type}」了</span>
+      </div>
+    `).join('');
+  }
+}
+
 /* ============ 首頁 ============ */
 function goTab(tab){
   document.querySelector('.bt-item[data-tab="'+tab+'"]').click();
@@ -2334,6 +2866,7 @@ document.getElementById('homeRecipeCard').addEventListener('click', (e)=>{
   goTab('recipes');
 });
 document.getElementById('homeShopCard').addEventListener('click', ()=>goTab('shopping'));
+document.getElementById('homeCatCard').addEventListener('click', ()=>goTab('catcal'));
 
 function renderHome(){
   applyHomeOrder();
@@ -2437,6 +2970,8 @@ function renderHome(){
       </div>
     `;
   }
+
+  renderCatHomeCard();
 }
 
 /* ============ 設定頁面邏輯 ============ */
@@ -2445,6 +2980,7 @@ const homeOrderMeta = {
   money:  { id:'homeMoneyCard',  label:'💰 本月支出' },
   recipe: { id:'homeRecipeCard', label:'🍳 料理紀錄' },
   shop:   { id:'homeShopCard',   label:'🧺 採買清單' },
+  cat:    { id:'homeCatCard',    label:'🐱 喵喵日曆' },
 };
 function applyHomeOrder(){
   const parent = document.getElementById('home');
@@ -2501,6 +3037,9 @@ document.getElementById('closeSettingsBtn').addEventListener('click', ()=> setti
 settingsModalEl.addEventListener('click', (e)=>{ if(e.target===settingsModalEl) settingsModalEl.classList.remove('show'); });
 
 function renderSettingsPanel(){
+  renderManageCatsSettings();
+  renderManageGroomTypes();
+
   // 主題色系
   const themes = [
     { key:'warm', label:'暖色系', dot:'#C1622C' },
@@ -2717,6 +3256,9 @@ renderCategoryChips();
 renderExpenses();
 renderTodos();
 renderReminders();
+renderCatCalendar();
+renderCatDayDetail();
+renderCatReminders();
 renderHome();
 </script>
 </body>
