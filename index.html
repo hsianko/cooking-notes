@@ -365,15 +365,15 @@ textarea.field{ min-height:56px; resize:vertical; }
 .todo-group-empty{ font-size:12.5px; color:var(--muted); padding:9px 0; }
 
 /* ===== 喵喵日曆 ===== */
-.cal-grid{ margin-top:10px; }
+.cal-grid{ margin-top:10px; display:flex; flex-direction:column; gap:4px; }
 .cal-header-row{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; }
-.cal-week-row{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; margin-top:4px; }
+.cal-week-row{ display:grid; grid-template-columns:repeat(7, minmax(0,1fr)); gap:4px; }
 .cal-weekday{ text-align:center; font-size:10.5px; color:var(--muted); font-weight:600; padding-bottom:4px; min-width:0; }
 .cal-cell{
   min-width:0; height:48px; border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center;
   font-size:12.5px; cursor:pointer; position:relative; background:var(--field); border:1px solid transparent; overflow:hidden;
 }
-.cal-cell.empty{ background:transparent; cursor:default; }
+.cal-cell.is-blank{ background:transparent; cursor:default; }
 .cal-cell.today{ border-color:var(--rust); font-weight:700; }
 .cal-cell.selected{ background:var(--rustSoft); }
 .cal-dots{ display:flex; gap:2px; margin-top:2px; flex-wrap:wrap; justify-content:center; max-width:34px; }
@@ -466,7 +466,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.2</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.4</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -972,6 +972,20 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.4',
+    date: '2026-10-06',
+    changes: [
+      '真正找到月曆空隙的根本原因：空白格子的class名稱「empty」跟App裡原本用在「無資料提示畫面」的通用樣式撞名，被多套了一層大留白，導致含空白格的那一週被撐高。已改名避開衝突',
+    ],
+  },
+  {
+    version: 'v7.3',
+    date: '2026-10-06',
+    changes: [
+      '修正月曆第一週跟第二週之間仍然留有異常空隙的問題，改用flex版面統一控制每週間距，徹底排除margin造成的間距異常',
+    ],
+  },
   {
     version: 'v7.2',
     date: '2026-10-05',
@@ -2555,7 +2569,7 @@ function renderCatCalendar(){
   let weeksHtml = '';
   for(let w=0; w<cells.length; w+=7){
     const weekCells = cells.slice(w, w+7).map(d=>{
-      if(d===null) return '<div class="cal-cell empty"></div>';
+      if(d===null) return '<div class="cal-cell is-blank"></div>';
       const dateStr = `${year}-${String(month).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
       const dayLogs = groomLogs.filter(l=>l.date===dateStr);
       const uniqueCatIds = [...new Set(dayLogs.map(l=>l.catId))];
@@ -2576,7 +2590,7 @@ function renderCatCalendar(){
 
   const grid = document.getElementById('catCalGrid');
   grid.innerHTML = headerHtml + weeksHtml;
-  grid.querySelectorAll('.cal-cell:not(.empty)').forEach(cell=>{
+  grid.querySelectorAll('.cal-cell:not(.is-blank)').forEach(cell=>{
     cell.addEventListener('click', ()=>{
       catCalSelectedDate = cell.dataset.date;
       renderCatCalendar();
