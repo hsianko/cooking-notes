@@ -337,7 +337,13 @@ textarea.field{ min-height:56px; resize:vertical; }
 .expense-info .name{ font-size:13.5px; font-weight:600; }
 .expense-info .meta{ font-size:11px; color:var(--muted); margin-top:1px; }
 .expense-amt{ font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; color:var(--rust); display:flex; align-items:center; gap:8px; }
-.date-label{ font-size:11px; color:var(--muted); font-weight:600; margin:14px 0 4px; text-transform:uppercase; letter-spacing:.03em; }
+.date-label{ font-size:11px; color:var(--muted); font-weight:600; margin:14px 0 4px; text-transform:uppercase; letter-spacing:.03em; display:flex; justify-content:space-between; align-items:center; }
+.date-label .date-total{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--rust); text-transform:none; letter-spacing:0; }
+.expense-batch-header{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:10px 0 2px; font-size:12px; color:var(--muted); border-bottom:1px dashed var(--cardBorder); }
+.expense-batch-header .batch-note{ font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
+.expense-batch-header .batch-total{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--rust); font-weight:600; flex-shrink:0; }
+.expense-row.batch-item{ padding:9px 0; }
+.expense-row.batch-item .expense-icon{ width:28px; height:28px; font-size:13px; }
 
 .camera-fab{
   position:fixed; right:20px; bottom:104px; width:52px; height:52px; border-radius:50%;
@@ -466,7 +472,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.4</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.6</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -972,6 +978,22 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.6',
+    date: '2026-10-09',
+    changes: [
+      '記帳的多類別拆帳紀錄，同一張發票拆成的多筆支出改為合併顯示成一組：備註只顯示一次，不會重複出現在每一筆類別底下，並標示這一組的小計金額',
+      '每天的支出紀錄上方新增「當日總額」，一眼就能看出當天總共花了多少錢',
+    ],
+  },
+  {
+    version: 'v7.5',
+    date: '2026-10-08',
+    changes: [
+      '同一次新增、同一隻貓勾選的多個事項類型，當天紀錄改為合併顯示成一筆（例如「炭炭　清耳朵、剪指甲」），備註只顯示一次，不會重複出現在每個類型底下',
+      '編輯紀錄改為整組編輯：可以同時調整這次拜訪包含的所有事項類型、備註、日期',
+    ],
+  },
   {
     version: 'v7.4',
     date: '2026-10-06',
@@ -1894,11 +1916,12 @@ document.getElementById('saveExpenseBtn').addEventListener('click', ()=>{
     lastCategory = data.category;
     lastPayment = data.payment;
   } else {
-    validRows.forEach(row=>{
+    const batchId = validRows.length > 1 ? (Date.now().toString() + Math.random().toString(36).slice(2,6)) : null;
+    validRows.forEach((row, i)=>{
       const exp = {
-        id: Date.now().toString() + Math.random().toString(36).slice(2,7),
+        id: Date.now().toString() + Math.random().toString(36).slice(2,7) + i,
         date, category: row.category, amount: parseFloat(row.amount),
-        payment, payer: selectedPayer, note
+        payment, payer: selectedPayer, note, batchId
       };
       expenses.unshift(exp);
       syncExpenseToCloud(exp);
@@ -2017,31 +2040,74 @@ function renderExpenses(){
   dates.forEach(date=>{
     const label = document.createElement('div');
     label.className = 'date-label';
-    label.textContent = date === todayStr() ? '今天' : date;
+    const dayTotal = byDate[date].reduce((s,e)=>s+Number(e.amount),0);
+    label.innerHTML = `<span>${date === todayStr() ? '今天' : date}</span><span class="date-total">$${dayTotal.toLocaleString()}</span>`;
     wrap.appendChild(label);
 
     const card = document.createElement('div');
     card.className = 'recipe-card';
+
+    // 將同一批次（batchId）拆帳的多筆支出歸為一組，避免備註重複顯示
+    const groupKeys = [];
+    const groupMap = new Map();
     byDate[date].forEach(e=>{
-      const row = document.createElement('div');
-      row.className = 'expense-row';
-      row.innerHTML = `
-        <div class="expense-left">
-          <div class="expense-icon">💸</div>
-          <div class="expense-info">
-            <div class="name"></div>
-            <div class="meta"></div>
+      const key = e.batchId || e.id;
+      if(!groupMap.has(key)){ groupMap.set(key, []); groupKeys.push(key); }
+      groupMap.get(key).push(e);
+    });
+
+    groupKeys.forEach(key=>{
+      const groupExps = groupMap.get(key);
+      if(groupExps.length === 1){
+        const e = groupExps[0];
+        const row = document.createElement('div');
+        row.className = 'expense-row';
+        row.innerHTML = `
+          <div class="expense-left">
+            <div class="expense-icon">💸</div>
+            <div class="expense-info">
+              <div class="name"></div>
+              <div class="meta"></div>
+            </div>
           </div>
-        </div>
-        <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
-      `;
-      row.querySelector('.name').textContent = e.note || e.category;
-      const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?payerPartnerLabel:payerMeLabel}付</span>` : '';
-      row.querySelector('.meta').innerHTML = `${e.category} · ${e.payment}${payerBadge}`;
-      row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
-      row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
-      row.querySelector('.del-exp-btn').addEventListener('click', ()=>deleteExpense(e.id));
-      card.appendChild(row);
+          <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
+        `;
+        row.querySelector('.name').textContent = e.note || e.category;
+        const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?payerPartnerLabel:payerMeLabel}付</span>` : '';
+        row.querySelector('.meta').innerHTML = `${e.category} · ${e.payment}${payerBadge}`;
+        row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
+        row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
+        row.querySelector('.del-exp-btn').addEventListener('click', ()=>deleteExpense(e.id));
+        card.appendChild(row);
+      } else {
+        const groupTotal = groupExps.reduce((s,e)=>s+Number(e.amount),0);
+        const sharedNote = (groupExps.find(e=>e.note) || {}).note || '';
+        const header = document.createElement('div');
+        header.className = 'expense-batch-header';
+        header.innerHTML = `<span class="batch-note">${sharedNote ? sharedNote : '一筆分帳支出'}</span><span class="batch-total">共 $${groupTotal.toLocaleString()}</span>`;
+        card.appendChild(header);
+        groupExps.forEach(e=>{
+          const row = document.createElement('div');
+          row.className = 'expense-row batch-item';
+          row.innerHTML = `
+            <div class="expense-left">
+              <div class="expense-icon">💸</div>
+              <div class="expense-info">
+                <div class="name"></div>
+                <div class="meta"></div>
+              </div>
+            </div>
+            <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
+          `;
+          row.querySelector('.name').textContent = e.category;
+          const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?payerPartnerLabel:payerMeLabel}付</span>` : '';
+          row.querySelector('.meta').innerHTML = `${e.payment}${payerBadge}`;
+          row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
+          row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
+          row.querySelector('.del-exp-btn').addEventListener('click', ()=>deleteExpense(e.id));
+          card.appendChild(row);
+        });
+      }
     });
     wrap.appendChild(card);
   });
@@ -2535,7 +2601,7 @@ let catCalMonthOffset = 0;
 let catCalSelectedDate = null;
 let selectedLogCatIds = [];
 let selectedLogTypes = [];
-let editingGroomLogId = null;
+let editingGroupLogIds = [];
 
 function saveCats(){ localStorage.setItem(STORAGE_CATS, JSON.stringify(cats)); }
 function saveGroomTypes(){ localStorage.setItem(STORAGE_GROOM_TYPES, JSON.stringify(groomTypes)); }
@@ -2610,25 +2676,38 @@ function renderCatDayDetail(){
     wrap.innerHTML = `<div class="recipe-card"><p style="font-size:12.5px; color:var(--muted); margin:0;">${catCalSelectedDate} 沒有紀錄</p></div>`;
     return;
   }
+
+  // 依「貓咪＋批次」分組：同一次新增、同一隻貓的多個事項類型合併成一筆顯示，備註只顯示一次
+  const groupMap = new Map();
+  dayLogs.forEach(l=>{
+    const key = l.catId + '|' + (l.batchId || l.id);
+    if(!groupMap.has(key)) groupMap.set(key, []);
+    groupMap.get(key).push(l);
+  });
+
   const card = document.createElement('div');
   card.className = 'recipe-card';
-  dayLogs.forEach(l=>{
-    const cat = cats.find(c=>c.id===l.catId);
+  [...groupMap.values()].forEach(groupLogs=>{
+    const cat = cats.find(c=>c.id===groupLogs[0].catId);
+    const typesText = groupLogs.map(x=>x.type).join('、');
+    const note = (groupLogs.find(x=>x.note) || {}).note || '';
     const row = document.createElement('div');
     row.className = 'day-log-row';
     row.innerHTML = `
       ${catAvatarHtml(cat, 24)}
       <div class="info">
-        <div class="cat-name">${cat?cat.name:'(已刪除)'}　<span class="type-name">${l.type}</span></div>
-        ${l.note ? `<div class="note"></div>` : ''}
+        <div class="cat-name">${cat?cat.name:'(已刪除)'}　<span class="type-name"></span></div>
+        ${note ? `<div class="note"></div>` : ''}
       </div>
       <button class="icon-btn edit-log-btn">✏️</button>
       <button class="icon-btn del-log-btn">✕</button>
     `;
-    if(l.note) row.querySelector('.note').textContent = l.note;
-    row.querySelector('.edit-log-btn').addEventListener('click', ()=> editGroomLog(l.id));
+    row.querySelector('.type-name').textContent = typesText;
+    if(note) row.querySelector('.note').textContent = note;
+    row.querySelector('.edit-log-btn').addEventListener('click', ()=> editGroomGroup(groupLogs));
     row.querySelector('.del-log-btn').addEventListener('click', ()=>{
-      groomLogs = groomLogs.filter(x=>x.id!==l.id);
+      const ids = groupLogs.map(x=>x.id);
+      groomLogs = groomLogs.filter(x=>!ids.includes(x.id));
       saveGroomLogs();
       renderCatCalendar(); renderCatDayDetail(); renderCatReminders(); renderHome();
     });
@@ -2648,7 +2727,7 @@ function renderCatSelectChips(){
   wrap.querySelectorAll('.cat-chip-select').forEach(chip=>{
     chip.addEventListener('click', ()=>{
       const id = chip.dataset.id;
-      if(editingGroomLogId){
+      if(editingGroupLogIds.length > 0){
         selectedLogCatIds = [id]; // 編輯既有紀錄時只能屬於一隻貓
       } else {
         if(selectedLogCatIds.includes(id)) selectedLogCatIds = selectedLogCatIds.filter(x=>x!==id);
@@ -2667,12 +2746,8 @@ function renderGroomTypeChips(){
   wrap.querySelectorAll('[data-type]').forEach(chip=>{
     chip.addEventListener('click', ()=>{
       const t = chip.dataset.type;
-      if(editingGroomLogId){
-        selectedLogTypes = [t]; // 編輯既有紀錄時只能是一個類型
-      } else {
-        if(selectedLogTypes.includes(t)) selectedLogTypes = selectedLogTypes.filter(x=>x!==t);
-        else selectedLogTypes.push(t);
-      }
+      if(selectedLogTypes.includes(t)) selectedLogTypes = selectedLogTypes.filter(x=>x!==t);
+      else selectedLogTypes.push(t);
       renderGroomTypeChips();
     });
   });
@@ -2681,8 +2756,7 @@ function renderGroomTypeChips(){
     if(name && name.trim()){
       groomTypes.push(name.trim());
       saveGroomTypes();
-      if(editingGroomLogId) selectedLogTypes = [name.trim()];
-      else selectedLogTypes.push(name.trim());
+      selectedLogTypes.push(name.trim());
       renderGroomTypeChips();
     }
   });
@@ -2690,7 +2764,7 @@ function renderGroomTypeChips(){
 
 const catLogFormModal = document.getElementById('catLogFormModal');
 document.getElementById('openCatLogFormBtn').addEventListener('click', ()=>{
-  editingGroomLogId = null;
+  editingGroupLogIds = [];
   document.getElementById('catLogFormTitle').textContent = '新增紀錄';
   document.getElementById('cl-date').value = catCalSelectedDate || todayStr();
   document.getElementById('cl-note').value = '';
@@ -2701,22 +2775,20 @@ document.getElementById('openCatLogFormBtn').addEventListener('click', ()=>{
   catLogFormModal.classList.add('show');
 });
 document.getElementById('closeCatLogFormBtn').addEventListener('click', ()=>{
-  editingGroomLogId = null;
+  editingGroupLogIds = [];
   catLogFormModal.classList.remove('show');
 });
 catLogFormModal.addEventListener('click', (e)=>{
-  if(e.target===catLogFormModal){ editingGroomLogId = null; catLogFormModal.classList.remove('show'); }
+  if(e.target===catLogFormModal){ editingGroupLogIds = []; catLogFormModal.classList.remove('show'); }
 });
 
-function editGroomLog(id){
-  const log = groomLogs.find(l=>l.id===id);
-  if(!log) return;
-  editingGroomLogId = id;
+function editGroomGroup(groupLogs){
+  editingGroupLogIds = groupLogs.map(x=>x.id);
   document.getElementById('catLogFormTitle').textContent = '編輯紀錄';
-  document.getElementById('cl-date').value = log.date;
-  document.getElementById('cl-note').value = log.note || '';
-  selectedLogCatIds = [log.catId];
-  selectedLogTypes = [log.type];
+  document.getElementById('cl-date').value = groupLogs[0].date;
+  document.getElementById('cl-note').value = (groupLogs.find(x=>x.note) || {}).note || '';
+  selectedLogCatIds = [groupLogs[0].catId];
+  selectedLogTypes = groupLogs.map(x=>x.type);
   renderCatSelectChips();
   renderGroomTypeChips();
   catLogFormModal.classList.add('show');
@@ -2729,16 +2801,22 @@ document.getElementById('saveCatLogBtn').addEventListener('click', ()=>{
   if(selectedLogCatIds.length===0){ showToast('請至少選擇一隻貓咪'); return; }
   if(selectedLogTypes.length===0){ showToast('請至少選擇一個事項類型'); return; }
 
-  if(editingGroomLogId){
+  if(editingGroupLogIds.length > 0){
+    groomLogs = groomLogs.filter(l => !editingGroupLogIds.includes(l.id));
+    const batchId = Date.now().toString()+Math.random().toString(36).slice(2,6);
     const catId = selectedLogCatIds[0];
-    const type = selectedLogTypes[0];
-    groomLogs = groomLogs.map(l=> l.id===editingGroomLogId ? { ...l, date, catId, type, note } : l);
+    let count = 0;
+    selectedLogTypes.forEach(type=>{
+      groomLogs.unshift({ id: Date.now().toString()+Math.random().toString(36).slice(2,6)+count, date, catId, type, note, batchId });
+      count++;
+    });
     showToast('已更新紀錄');
   } else {
+    const batchId = Date.now().toString()+Math.random().toString(36).slice(2,6);
     let count = 0;
     selectedLogCatIds.forEach(catId=>{
       selectedLogTypes.forEach(type=>{
-        groomLogs.unshift({ id: Date.now().toString()+Math.random().toString(36).slice(2,6)+count, date, catId, type, note });
+        groomLogs.unshift({ id: Date.now().toString()+Math.random().toString(36).slice(2,6)+count, date, catId, type, note, batchId });
         count++;
       });
     });
@@ -2746,7 +2824,7 @@ document.getElementById('saveCatLogBtn').addEventListener('click', ()=>{
   }
   saveGroomLogs();
   catCalSelectedDate = date;
-  editingGroomLogId = null;
+  editingGroupLogIds = [];
   catLogFormModal.classList.remove('show');
   renderCatCalendar();
   renderCatDayDetail();
