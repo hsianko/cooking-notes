@@ -263,8 +263,19 @@ textarea.field{ min-height:56px; resize:vertical; }
 
 .split-row{ display:flex; gap:8px; align-items:center; margin-bottom:8px; }
 .split-row select{ flex:1.3; }
-.split-row input{ flex:1; text-align:right; font-family:'IBM Plex Mono',monospace; }
+.split-row input.split-amt-input{ flex:1; text-align:right; font-family:'IBM Plex Mono',monospace; }
 .split-row .rm-split-btn{ border:none; background:transparent; color:var(--muted); font-size:16px; cursor:pointer; padding:2px 6px; flex-shrink:0; }
+.split-row.multi{ flex-direction:column; align-items:stretch; border:1px solid var(--cardBorder); border-radius:11px; padding:9px; }
+.split-row-top{ display:flex; gap:8px; align-items:center; }
+.split-row-top select{ flex:1.3; }
+.split-row-top input.split-amt-input{ flex:1; text-align:right; font-family:'IBM Plex Mono',monospace; }
+.split-row-bottom{ display:flex; gap:6px; margin-top:7px; align-items:center; }
+.split-note-input{ flex:1; min-width:0; padding:7px 9px; border-radius:8px; border:1px dashed var(--cardBorder); background:var(--field); font-size:12px; color:var(--ink); font-family:inherit; }
+.split-payer-mini{ display:flex; gap:4px; flex-shrink:0; }
+.split-payer-mini button{ border:1.5px solid var(--cardBorder); background:var(--field); color:var(--muted); font-size:11px; font-weight:600; padding:0 8px; height:30px; border-radius:8px; cursor:pointer; }
+.split-payer-mini button.active{ border-color:var(--sage); background:var(--sageBg); color:var(--sageDark); }
+.split-payer-mini button.active.partner{ border-color:var(--blue,#5C7FA6); background:var(--blueBg); color:var(--blueText); }
+.split-hint{ font-size:11px; color:var(--muted); margin:8px 0 0; }
 .add-split-btn{
   width:100%; padding:9px; border-radius:9px; border:1.5px dashed var(--rust);
   background:var(--rustSoft); color:var(--rust); font-size:12.5px; font-weight:600; cursor:pointer; margin-top:2px;
@@ -339,11 +350,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 .expense-amt{ font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:600; color:var(--rust); display:flex; align-items:center; gap:8px; }
 .date-label{ font-size:11px; color:var(--muted); font-weight:600; margin:14px 0 4px; text-transform:uppercase; letter-spacing:.03em; display:flex; justify-content:space-between; align-items:center; }
 .date-label .date-total{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--rust); text-transform:none; letter-spacing:0; }
-.expense-batch-header{ display:flex; justify-content:space-between; align-items:baseline; gap:10px; padding:10px 0 2px; font-size:12px; color:var(--muted); border-bottom:1px dashed var(--cardBorder); }
-.expense-batch-header .batch-note{ font-weight:600; color:var(--text); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; flex:1; }
-.expense-batch-header .batch-total{ font-family:'IBM Plex Mono',monospace; font-size:12px; color:var(--rust); font-weight:600; flex-shrink:0; }
-.expense-row.batch-item{ padding:9px 0; }
-.expense-row.batch-item .expense-icon{ width:28px; height:28px; font-size:13px; }
+.exp-note{ font-size:11px; color:var(--muted); font-style:italic; margin-top:2px; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
 .camera-fab{
   position:fixed; right:20px; bottom:104px; width:52px; height:52px; border-radius:50%;
@@ -472,7 +479,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo">📖</div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.6</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.7</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -643,14 +650,19 @@ textarea.field{ min-height:56px; resize:vertical; }
       <label class="field-label">付款方式</label>
       <select class="field" id="e-payment"></select>
 
-      <label class="field-label">付款人</label>
-      <div class="payer-row">
-        <div class="payer-chip active" id="payerMeChip" data-payer="me">🧍 <span id="payerMeChipLabel">自己</span></div>
-        <div class="payer-chip" id="payerPartnerChip" data-payer="partner">🧑‍🤝‍🧑 <span id="payerPartnerChipLabel">對方</span></div>
+      <div id="e-payer-section">
+        <label class="field-label">付款人</label>
+        <div class="payer-row">
+          <div class="payer-chip active" id="payerMeChip" data-payer="me">🧍 <span id="payerMeChipLabel">自己</span></div>
+          <div class="payer-chip" id="payerPartnerChip" data-payer="partner">🧑‍🤝‍🧑 <span id="payerPartnerChipLabel">對方</span></div>
+        </div>
       </div>
 
-      <label class="field-label">備註（選填）</label>
-      <textarea class="field" id="e-note" placeholder="例如：貓咪飼料" style="min-height:70px;"></textarea>
+      <div id="e-note-section">
+        <label class="field-label">備註（選填）</label>
+        <textarea class="field" id="e-note" placeholder="例如：貓咪飼料" style="min-height:70px;"></textarea>
+      </div>
+      <p class="split-hint" id="splitMultiHint" style="display:none;">多個類別時，請在上面每一項各自填寫備註與付款人</p>
 
       <button class="save-btn" id="saveExpenseBtn">儲存</button>
     </div>
@@ -978,6 +990,15 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.7',
+    date: '2026-10-13',
+    changes: [
+      '記帳改採「逐筆顯示」：拆成多類別時，每一列可以各自填備註、各自選付款人（自己／對方），不用整張收據綁同一個付款人',
+      '多類別分配表單新增每列獨立的備註欄與付款人切換鈕，只有一個類別時維持原本簡單的單一備註／付款人欄位',
+      '支出列表拿掉群組大卡片，單筆與多筆拆帳都用同一種列顯示：類別、付款方式、付款人徽章，備註以小字顯示在下方',
+    ],
+  },
   {
     version: 'v7.6',
     date: '2026-10-09',
@@ -1752,7 +1773,7 @@ document.getElementById('payerPartnerChip').addEventListener('click', ()=>setPay
 const expenseFormCard = document.getElementById('expenseFormModal');
 
 /* ===== 多類別分配 ===== */
-let splitRows = [{ category:'', amount:'' }];
+let splitRows = [{ category:'', amount:'', note:'', payer:'me' }];
 
 function categoryOptionsHtml(selected){
   const placeholder = selected ? '' : '<option value="" selected disabled>請選擇類別...</option>';
@@ -1762,15 +1783,39 @@ function categoryOptionsHtml(selected){
 
 function renderSplitRows(){
   const wrap = document.getElementById('e-split-rows');
-  const showRemove = !editingExpenseId && splitRows.length > 1;
-  wrap.innerHTML = splitRows.map((row, i)=>`
-    <div class="split-row">
-      <select class="field split-cat-select" data-index="${i}">${categoryOptionsHtml(row.category)}</select>
-      <input class="field split-amt-input" type="number" inputmode="numeric" data-index="${i}" placeholder="金額" value="${row.amount}">
-      ${showRemove ? `<button class="rm-split-btn" data-index="${i}" type="button">✕</button>` : ''}
-    </div>
-  `).join('');
+  const isMulti = splitRows.length > 1;
+  const showRemove = !editingExpenseId && isMulti;
+
+  if(!isMulti){
+    wrap.innerHTML = splitRows.map((row, i)=>`
+      <div class="split-row">
+        <select class="field split-cat-select" data-index="${i}">${categoryOptionsHtml(row.category)}</select>
+        <input class="field split-amt-input" type="number" inputmode="numeric" data-index="${i}" placeholder="金額" value="${row.amount}">
+      </div>
+    `).join('');
+  } else {
+    wrap.innerHTML = splitRows.map((row, i)=>`
+      <div class="split-row multi">
+        <div class="split-row-top">
+          <select class="field split-cat-select" data-index="${i}">${categoryOptionsHtml(row.category)}</select>
+          <input class="field split-amt-input" type="number" inputmode="numeric" data-index="${i}" placeholder="金額" value="${row.amount}">
+          ${showRemove ? `<button class="rm-split-btn" data-index="${i}" type="button">✕</button>` : ''}
+        </div>
+        <div class="split-row-bottom">
+          <input class="split-note-input" data-index="${i}" placeholder="備註（選填）" value="${(row.note||'').replace(/"/g,'&quot;')}">
+          <div class="split-payer-mini" data-index="${i}">
+            <button type="button" class="split-payer-btn ${row.payer!=='partner'?'active':''}" data-index="${i}" data-payer="me">${payerMeLabel}</button>
+            <button type="button" class="split-payer-btn ${row.payer==='partner'?'active partner':''}" data-index="${i}" data-payer="partner">${payerPartnerLabel}</button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
   document.getElementById('addSplitRowBtn').style.display = editingExpenseId ? 'none' : 'block';
+  document.getElementById('e-payer-section').style.display = isMulti ? 'none' : 'block';
+  document.getElementById('e-note-section').style.display = isMulti ? 'none' : 'block';
+  document.getElementById('splitMultiHint').style.display = isMulti ? 'block' : 'none';
   updateBalance();
 }
 
@@ -1801,6 +1846,9 @@ document.getElementById('e-split-rows').addEventListener('input', function(e){
       document.getElementById('e-target-total').value = e.target.value;
     }
     updateBalance();
+  } else if(e.target.classList.contains('split-note-input')){
+    const i = Number(e.target.dataset.index);
+    splitRows[i].note = e.target.value;
   }
 });
 document.getElementById('e-split-rows').addEventListener('click', function(e){
@@ -1808,10 +1856,14 @@ document.getElementById('e-split-rows').addEventListener('click', function(e){
     const i = Number(e.target.dataset.index);
     splitRows.splice(i, 1);
     renderSplitRows();
+  } else if(e.target.classList.contains('split-payer-btn')){
+    const i = Number(e.target.dataset.index);
+    splitRows[i].payer = e.target.dataset.payer;
+    renderSplitRows();
   }
 });
 document.getElementById('addSplitRowBtn').addEventListener('click', ()=>{
-  splitRows.push({ category: categories[0] || '', amount:'' });
+  splitRows.push({ category: categories[0] || '', amount:'', note:'', payer: selectedPayer });
   renderSplitRows();
 });
 document.getElementById('e-target-total').addEventListener('input', updateBalance);
@@ -1867,7 +1919,7 @@ function editExpense(id){
   renderPaymentSelect();
   document.getElementById('e-date').value = exp.date;
   document.getElementById('e-target-total').value = exp.amount;
-  splitRows = [{ category: exp.category, amount: exp.amount }];
+  splitRows = [{ category: exp.category, amount: exp.amount, note: exp.note || '', payer: exp.payer === 'partner' ? 'partner' : 'me' }];
   renderSplitRows();
   document.getElementById('e-payment').value = exp.payment;
   setPayer(exp.payer === 'partner' ? 'partner' : 'me');
@@ -1900,6 +1952,7 @@ document.getElementById('saveExpenseBtn').addEventListener('click', ()=>{
   const date = document.getElementById('e-date').value || todayStr();
   const payment = document.getElementById('e-payment').value;
   const note = document.getElementById('e-note').value.trim();
+  const isMulti = splitRows.length > 1;
   const validRows = splitRows.filter(r => r.category && parseFloat(r.amount) > 0);
 
   if(validRows.length === 0){
@@ -1920,8 +1973,10 @@ document.getElementById('saveExpenseBtn').addEventListener('click', ()=>{
     validRows.forEach((row, i)=>{
       const exp = {
         id: Date.now().toString() + Math.random().toString(36).slice(2,7) + i,
-        date, category: row.category, amount: parseFloat(row.amount),
-        payment, payer: selectedPayer, note, batchId
+        date, category: row.category, amount: parseFloat(row.amount), payment,
+        payer: isMulti ? (row.payer === 'partner' ? 'partner' : 'me') : selectedPayer,
+        note: isMulti ? (row.note || '').trim() : note,
+        batchId
       };
       expenses.unshift(exp);
       syncExpenseToCloud(exp);
@@ -2047,67 +2102,30 @@ function renderExpenses(){
     const card = document.createElement('div');
     card.className = 'recipe-card';
 
-    // 將同一批次（batchId）拆帳的多筆支出歸為一組，避免備註重複顯示
-    const groupKeys = [];
-    const groupMap = new Map();
+    // 每一筆都是獨立的一列，各自顯示自己的類別、付款人與備註，單筆、多筆拆帳外觀一致
     byDate[date].forEach(e=>{
-      const key = e.batchId || e.id;
-      if(!groupMap.has(key)){ groupMap.set(key, []); groupKeys.push(key); }
-      groupMap.get(key).push(e);
-    });
-
-    groupKeys.forEach(key=>{
-      const groupExps = groupMap.get(key);
-      if(groupExps.length === 1){
-        const e = groupExps[0];
-        const row = document.createElement('div');
-        row.className = 'expense-row';
-        row.innerHTML = `
-          <div class="expense-left">
-            <div class="expense-icon">💸</div>
-            <div class="expense-info">
-              <div class="name"></div>
-              <div class="meta"></div>
-            </div>
+      const row = document.createElement('div');
+      row.className = 'expense-row';
+      row.innerHTML = `
+        <div class="expense-left">
+          <div class="expense-icon">💸</div>
+          <div class="expense-info">
+            <div class="name"></div>
+            <div class="meta"></div>
+            <div class="exp-note"></div>
           </div>
-          <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
-        `;
-        row.querySelector('.name').textContent = e.note || e.category;
-        const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?payerPartnerLabel:payerMeLabel}付</span>` : '';
-        row.querySelector('.meta').innerHTML = `${e.category} · ${e.payment}${payerBadge}`;
-        row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
-        row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
-        row.querySelector('.del-exp-btn').addEventListener('click', ()=>deleteExpense(e.id));
-        card.appendChild(row);
-      } else {
-        const groupTotal = groupExps.reduce((s,e)=>s+Number(e.amount),0);
-        const sharedNote = (groupExps.find(e=>e.note) || {}).note || '';
-        const header = document.createElement('div');
-        header.className = 'expense-batch-header';
-        header.innerHTML = `<span class="batch-note">${sharedNote ? sharedNote : '一筆分帳支出'}</span><span class="batch-total">共 $${groupTotal.toLocaleString()}</span>`;
-        card.appendChild(header);
-        groupExps.forEach(e=>{
-          const row = document.createElement('div');
-          row.className = 'expense-row batch-item';
-          row.innerHTML = `
-            <div class="expense-left">
-              <div class="expense-icon">💸</div>
-              <div class="expense-info">
-                <div class="name"></div>
-                <div class="meta"></div>
-              </div>
-            </div>
-            <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
-          `;
-          row.querySelector('.name').textContent = e.category;
-          const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?payerPartnerLabel:payerMeLabel}付</span>` : '';
-          row.querySelector('.meta').innerHTML = `${e.payment}${payerBadge}`;
-          row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
-          row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
-          row.querySelector('.del-exp-btn').addEventListener('click', ()=>deleteExpense(e.id));
-          card.appendChild(row);
-        });
-      }
+        </div>
+        <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
+      `;
+      row.querySelector('.name').textContent = e.category;
+      const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?payerPartnerLabel:payerMeLabel}付</span>` : '';
+      row.querySelector('.meta').innerHTML = `${e.payment}${payerBadge}`;
+      const noteEl = row.querySelector('.exp-note');
+      if(e.note){ noteEl.textContent = e.note; } else { noteEl.remove(); }
+      row.querySelector('.amt-text').textContent = '$' + Number(e.amount).toLocaleString();
+      row.querySelector('.edit-exp-btn').addEventListener('click', ()=>editExpense(e.id));
+      row.querySelector('.del-exp-btn').addEventListener('click', ()=>deleteExpense(e.id));
+      card.appendChild(row);
     });
     wrap.appendChild(card);
   });
