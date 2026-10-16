@@ -428,6 +428,21 @@ textarea.field{ min-height:56px; resize:vertical; }
 .sc-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
 .sc-title{ display:flex; align-items:center; gap:8px; font-family:'Fraunces',serif; font-weight:600; font-size:15.5px; }
 .sc-title .emoji{ font-size:17px; }
+/* ===== 圖示（取代 emoji） ===== */
+.i{ width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.75; stroke-linecap:round; stroke-linejoin:round; vertical-align:-3px; flex-shrink:0; }
+.btn-ic .i{ margin-right:6px; }
+.icon-btn.act{ width:32px; height:32px; padding:0; justify-content:center; border:1px solid var(--cardBorder); border-radius:9px; color:var(--muted); }
+.icon-btn.act .i{ width:16px; height:16px; }
+.icon-btn.act.del{ color:var(--red); }
+.mono-badge{ width:28px; height:28px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-family:inherit; font-size:13px; font-weight:700; flex-shrink:0; }
+.mono-badge.big{ width:56px; height:56px; font-size:23px; }
+.mono-badge.c1{ background:var(--sageBg); color:var(--sageDark); }
+.mono-badge.c2{ background:var(--rustSoft); color:var(--rust); }
+.mono-badge.c3{ background:var(--orangeSoft); color:var(--orangeText); }
+.mono-badge.c4{ background:var(--blueBg); color:var(--blueText); }
+.mono-badge.c5{ background:var(--pillBg); color:var(--ink); }
+.empty-icon:has(.mono-badge){ opacity:1; }
+
 .sc-link{ font-size:11.5px; color:var(--rust); font-weight:600; }
 .recipe-preview{ display:flex; align-items:center; gap:10px; }
 .recipe-thumb{ width:44px; height:44px; border-radius:11px; background:var(--rustSoft); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
@@ -474,16 +489,36 @@ textarea.field{ min-height:56px; resize:vertical; }
 </script>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="i-book" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
+<symbol id="i-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
+<symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
+<symbol id="i-trash" viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><path d="M10 11v6"/><path d="M14 11v6"/></symbol>
+<symbol id="i-camera" viewBox="0 0 24 24"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"/><circle cx="12" cy="13" r="3"/></symbol>
+<symbol id="i-bell" viewBox="0 0 24 24"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></symbol>
+<symbol id="i-cloud" viewBox="0 0 24 24"><path d="M12 13v8l-4-4"/><path d="m12 21 4-4"/><path d="M4.393 15.269A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.436 8.284"/></symbol>
+<symbol id="i-download" viewBox="0 0 24 24"><path d="M12 15V3"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m7 10 5 5 5-5"/></symbol>
+<symbol id="i-alarm" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2 2"/><path d="M5 3 2 6"/><path d="m22 6-3-3"/><path d="M6.38 18.7 4 21"/><path d="M17.64 18.67 20 21"/></symbol>
+<symbol id="i-alert" viewBox="0 0 24 24"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+<symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></symbol>
+<symbol id="i-users" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+<symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 22a1 1 0 0 1 0-20 10 9 0 0 1 10 9 5 5 0 0 1-5 5h-2.25a1.75 1.75 0 0 0-1.4 2.8l.3.4a1.75 1.75 0 0 1-1.4 2.8z"/><circle cx="13.5" cy="6.5" r=".5" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".5" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".5" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".5" fill="currentColor"/></symbol>
+<symbol id="i-utensils" viewBox="0 0 24 24"><path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/></symbol>
+<symbol id="i-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
+<symbol id="i-note" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
+<symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></symbol>
+<symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+</svg>
 
 <div class="header-wrap">
   <div class="header-row">
-    <div class="logo">📖</div>
+    <div class="logo" style="color:var(--rust);"><svg class="i" style="width:22px;height:22px;" aria-hidden="true"><use href="#i-book"/></svg></div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.7</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.8</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
-    <button class="icon-btn" id="openSettingsBtn" style="font-size:20px;">⚙️</button>
+    <button class="icon-btn" id="openSettingsBtn" aria-label="設定" style="color:var(--muted);"><svg class="i" style="width:22px;height:22px;" aria-hidden="true"><use href="#i-gear"/></svg></button>
   </div>
 </div>
 
@@ -495,7 +530,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <section class="tabpanel active" id="home">
     <div class="section-card" id="homeTodoCard">
       <div class="sc-head">
-        <span class="sc-title"><span class="emoji">✅</span>待辦事項</span>
+        <span class="sc-title"><span class="mono-badge c1">待</span>待辦事項</span>
         <span class="sc-link">查看全部 ›</span>
       </div>
       <div class="home-headline" id="homeTodoHeadline"></div>
@@ -504,7 +539,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 
     <div class="section-card" id="homeMoneyCard">
       <div class="sc-head">
-        <span class="sc-title"><span class="emoji">💰</span>本月支出</span>
+        <span class="sc-title"><span class="mono-badge c2">帳</span>本月支出</span>
         <span class="sc-link">查看明細 ›</span>
       </div>
       <div id="homeMoneyBody"></div>
@@ -512,7 +547,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 
     <div class="section-card" id="homeRecipeCard">
       <div class="sc-head">
-        <span class="sc-title"><span class="emoji">🍳</span>料理紀錄</span>
+        <span class="sc-title"><span class="mono-badge c3">料</span>料理紀錄</span>
         <span class="sc-link">查看全部 ›</span>
       </div>
       <div id="homeRecipeBody"></div>
@@ -520,7 +555,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 
     <div class="section-card" id="homeShopCard">
       <div class="sc-head">
-        <span class="sc-title"><span class="emoji">🧺</span>採買清單</span>
+        <span class="sc-title"><span class="mono-badge c4">採</span>採買清單</span>
         <span class="sc-link">查看全部 ›</span>
       </div>
       <div id="homeShopBody"></div>
@@ -528,7 +563,7 @@ textarea.field{ min-height:56px; resize:vertical; }
 
     <div class="section-card" id="homeCatCard">
       <div class="sc-head">
-        <span class="sc-title"><span class="emoji">🐱</span>喵喵日曆</span>
+        <span class="sc-title"><span class="mono-badge c5">喵</span>喵喵日曆</span>
         <span class="sc-link">查看全部 ›</span>
       </div>
       <div id="homeCatBody"></div>
@@ -576,7 +611,7 @@ textarea.field{ min-height:56px; resize:vertical; }
     </div>
 
     <div class="empty" id="recipesEmpty" style="display:none;">
-      <div class="empty-icon">🍳</div>
+      <div class="empty-icon"><span class="mono-badge big c3">料</span></div>
       <p class="empty-text">還沒有紀錄，點上面按鈕新增第一道料理</p>
     </div>
 
@@ -591,7 +626,7 @@ textarea.field{ min-height:56px; resize:vertical; }
     </div>
 
     <div class="empty" id="shoppingEmpty" style="display:none;">
-      <div class="empty-icon">🧺</div>
+      <div class="empty-icon"><span class="mono-badge big c4">採</span></div>
       <p class="empty-text">採買清單是空的</p>
     </div>
 
@@ -653,8 +688,8 @@ textarea.field{ min-height:56px; resize:vertical; }
       <div id="e-payer-section">
         <label class="field-label">付款人</label>
         <div class="payer-row">
-          <div class="payer-chip active" id="payerMeChip" data-payer="me">🧍 <span id="payerMeChipLabel">自己</span></div>
-          <div class="payer-chip" id="payerPartnerChip" data-payer="partner">🧑‍🤝‍🧑 <span id="payerPartnerChipLabel">對方</span></div>
+          <div class="payer-chip active" id="payerMeChip" data-payer="me"><svg class="i" aria-hidden="true"><use href="#i-user"/></svg> <span id="payerMeChipLabel">自己</span></div>
+          <div class="payer-chip" id="payerPartnerChip" data-payer="partner"><svg class="i" aria-hidden="true"><use href="#i-users"/></svg> <span id="payerPartnerChipLabel">對方</span></div>
         </div>
       </div>
 
@@ -669,14 +704,14 @@ textarea.field{ min-height:56px; resize:vertical; }
     </div>
 
     <div class="empty" id="moneyEmpty" style="display:none;">
-      <div class="empty-icon">💰</div>
+      <div class="empty-icon"><span class="mono-badge big c2">帳</span></div>
       <p class="empty-text">還沒有支出紀錄</p>
     </div>
 
     <div id="expenseListWrap"></div>
 
     <input type="file" id="cameraInput" accept="image/*" capture="environment" style="display:none;">
-    <button class="camera-fab" id="cameraBtn">📷</button>
+    <button class="camera-fab" id="cameraBtn" aria-label="拍照記帳"><svg class="i" style="width:24px;height:24px;vertical-align:middle;" aria-hidden="true"><use href="#i-camera"/></svg></button>
   </section>
 
   <!-- 待辦 -->
@@ -709,7 +744,7 @@ textarea.field{ min-height:56px; resize:vertical; }
     </div>
 
     <div class="empty" id="todoEmpty" style="display:none;">
-      <div class="empty-icon">✅</div>
+      <div class="empty-icon"><span class="mono-badge big c1">待</span></div>
       <p class="empty-text">目前沒有待辦事項</p>
     </div>
 
@@ -727,7 +762,7 @@ textarea.field{ min-height:56px; resize:vertical; }
           <span class="lbl" id="catMonthLabel">9月</span>
           <button class="month-nav-btn" id="catNextMonthBtn">▶</button>
         </div>
-        <button class="icon-btn" id="openScheduleBtn" style="font-size:18px;">⏰</button>
+        <button class="icon-btn act" id="openScheduleBtn" aria-label="提醒排程"><svg class="i" aria-hidden="true"><use href="#i-alarm"/></svg></button>
       </div>
       <div class="cal-grid" id="catCalGrid"></div>
     </div>
@@ -900,8 +935,8 @@ textarea.field{ min-height:56px; resize:vertical; }
 
     <div class="settings-section">
       <div class="settings-section-title">資料管理</div>
-      <button class="checkout-btn" id="exportDataBtn" style="margin-bottom:10px;">⬇️ 匯出資料備份</button>
-      <button class="settings-danger-btn" id="clearLocalDataBtn">🗑 清除本機資料</button>
+      <button class="checkout-btn" id="exportDataBtn" style="margin-bottom:10px;"><span class="btn-ic"><svg class="i" aria-hidden="true"><use href="#i-download"/></svg></span>匯出資料備份</button>
+      <button class="settings-danger-btn" id="clearLocalDataBtn"><span class="btn-ic"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></span>清除本機資料</button>
     </div>
   </div>
 </div>
@@ -912,8 +947,8 @@ textarea.field{ min-height:56px; resize:vertical; }
       <span class="modal-title">版本紀錄</span>
       <button class="icon-btn" id="closeVerBtn">✕</button>
     </div>
-    <button class="checkout-btn" id="enableNotifyBtn" style="margin-bottom:10px; background:var(--rust);">🔔 開啟到期提醒通知</button>
-    <button class="checkout-btn" id="restoreCloudBtn" style="margin-bottom:16px;">☁️ 從雲端還原資料</button>
+    <button class="checkout-btn" id="enableNotifyBtn" style="margin-bottom:10px; background:var(--rust);"><span class="btn-ic"><svg class="i" aria-hidden="true"><use href="#i-bell"/></svg></span>開啟到期提醒通知</button>
+    <button class="checkout-btn" id="restoreCloudBtn" style="margin-bottom:16px;"><span class="btn-ic"><svg class="i" aria-hidden="true"><use href="#i-cloud"/></svg></span>從雲端還原資料</button>
     <div id="verList"></div>
   </div>
 </div>
@@ -990,6 +1025,15 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.8',
+    date: '2026-10-16',
+    changes: [
+      '全 APP 的 emoji 圖示改成統一風格：首頁卡片標題與空白畫面改為單字圓章（待、帳、料、採、喵），其餘改為線條圖示',
+      '編輯、刪除等操作按鈕改為有邊框的線條圖示按鈕，刪除鈕為紅色；相機、提醒、設定、雲端還原等也一併換成線條圖示',
+      '圖示顏色會跟著主題（暖色／海洋藍綠／深色）自動變化',
+    ],
+  },
   {
     version: 'v7.7',
     date: '2026-10-13',
@@ -1079,7 +1123,7 @@ const CHANGELOG = [
     version: 'v6.0',
     date: '2026-09-21',
     changes: [
-      '新增「設定」頁面（點標題列右上角⚙️齒輪），可自行調整：主題色系（暖色/海洋藍綠/深色）、底部導覽圖示開關、首頁板塊順序、首頁待辦預覽筆數',
+      '新增「設定」頁面（點標題列右上角齒輪），可自行調整：主題色系（暖色/海洋藍綠/深色）、底部導覽圖示開關、首頁板塊順序、首頁待辦預覽筆數',
       '記帳類別／付款方式新增管理功能：可改名、刪除、排序，改名會連動更新既有紀錄',
       '付款人「自己／對方」文字可自訂成任意稱呼',
       '拍照辨識方式可選擇雲端優先或只用本機（不連網）',
@@ -1537,18 +1581,18 @@ function renderRecipes(){
       <div class="recipe-top">
         <span class="recipe-name"></span>
         <div style="display:flex; gap:2px;">
-          <button class="icon-btn edit-btn">✏️</button>
-          <button class="icon-btn del-btn">🗑</button>
+          <button class="icon-btn act edit-btn" aria-label="編輯"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button>
+          <button class="icon-btn act del del-btn" aria-label="刪除"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button>
         </div>
       </div>
       <div class="tag-row">
         <span class="tag"></span>
         ${r.mode ? '<span class="tag mode-tag"></span>' : ''}
-        ${r.time ? '<span class="tag tag-time">⏱ <span class="time-text"></span></span>' : ''}
+        ${r.time ? '<span class="tag tag-time"><svg class="i" style="width:12px;height:12px;vertical-align:-2px;" aria-hidden="true"><use href="#i-clock"/></svg> <span class="time-text"></span></span>' : ''}
       </div>
-      ${r.notes ? '<div class="notes-row">📝&nbsp;<span class="notes-text"></span></div>' : ''}
+      ${r.notes ? '<div class="notes-row"><svg class="i" style="width:14px;height:14px;margin-top:2px;" aria-hidden="true"><use href="#i-note"/></svg>&nbsp;<span class="notes-text"></span></div>' : ''}
       ${r.ingredients ? `
-        <div class="ing-toggle">🧾 查看食材（${ingList(r).length}項）<span class="ing-arrow">▾</span></div>
+        <div class="ing-toggle"><svg class="i" style="width:15px;height:15px;" aria-hidden="true"><use href="#i-receipt"/></svg> 查看食材（${ingList(r).length}項）<span class="ing-arrow">▾</span></div>
         <div class="ing-body"><div class="ing-body-inner">
           <div class="ing-chip-row"></div>
           <button class="add-to-cart-btn">食材加入採買清單 →</button>
@@ -2108,14 +2152,14 @@ function renderExpenses(){
       row.className = 'expense-row';
       row.innerHTML = `
         <div class="expense-left">
-          <div class="expense-icon">💸</div>
+          <div class="expense-icon" style="color:var(--rust);"><svg class="i" aria-hidden="true"><use href="#i-wallet"/></svg></div>
           <div class="expense-info">
             <div class="name"></div>
             <div class="meta"></div>
             <div class="exp-note"></div>
           </div>
         </div>
-        <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn edit-exp-btn">✏️</button><button class="icon-btn del-exp-btn">✕</button></div>
+        <div class="expense-amt"><span class="amt-text"></span><button class="icon-btn act edit-exp-btn" aria-label="編輯"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button><button class="icon-btn act del del-exp-btn" aria-label="刪除"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button></div>
       `;
       row.querySelector('.name').textContent = e.category;
       const payerBadge = e.payer ? `<span class="payer-badge ${e.payer==='partner'?'partner':'me'}">${e.payer==='partner'?payerPartnerLabel:payerMeLabel}付</span>` : '';
@@ -2496,8 +2540,8 @@ function makeTodoRow(t){
       ${linkLabel ? '<div class="todo-link"></div>' : ''}
     </div>
     <span class="pri-tag ${t.priority==='high'?'pri-high':'pri-normal'}">${t.priority==='high'?'急':'普通'}</span>
-    <button class="icon-btn edit-todo-btn">✏️</button>
-    <button class="icon-btn del-todo-btn">✕</button>
+    <button class="icon-btn act edit-todo-btn" aria-label="編輯"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button>
+    <button class="icon-btn act del del-todo-btn" aria-label="刪除"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button>
   `;
   row.querySelector('.todo-name').textContent = t.name;
   if(t.due) row.querySelector('.todo-due').textContent = '到期：'+t.due;
@@ -2569,7 +2613,7 @@ function renderReminders(){
   overdue.forEach(t=>{
     const el = document.createElement('div');
     el.className = 'reminder-banner';
-    el.innerHTML = `⚠️ <span><b>已逾期：</b>${t.name}</span>`;
+    el.innerHTML = `<svg class="i" aria-hidden="true"><use href="#i-alert"/></svg> <span><b>已逾期：</b>${t.name}</span>`;
     el.addEventListener('click', ()=>{
       document.querySelector('.bt-item[data-tab="todo"]').click();
     });
@@ -2578,7 +2622,7 @@ function renderReminders(){
   dueToday.forEach(t=>{
     const el = document.createElement('div');
     el.className = 'reminder-banner today';
-    el.innerHTML = `🔔 <span><b>今天到期：</b>${t.name}</span>`;
+    el.innerHTML = `<svg class="i" aria-hidden="true"><use href="#i-bell"/></svg> <span><b>今天到期：</b>${t.name}</span>`;
     el.addEventListener('click', ()=>{
       document.querySelector('.bt-item[data-tab="todo"]').click();
     });
@@ -2686,7 +2730,7 @@ function renderCatCalendar(){
 function renderCatDayDetail(){
   const wrap = document.getElementById('catDayDetail');
   if(!catCalSelectedDate){
-    wrap.innerHTML = '<div class="empty"><div class="empty-icon">🐱</div><p class="empty-text">點選月曆上的日期查看當天紀錄</p></div>';
+    wrap.innerHTML = '<div class="empty"><div class="empty-icon"><span class="mono-badge big c5">喵</span></div><p class="empty-text">點選月曆上的日期查看當天紀錄</p></div>';
     return;
   }
   const dayLogs = groomLogs.filter(l=>l.date===catCalSelectedDate);
@@ -2717,8 +2761,8 @@ function renderCatDayDetail(){
         <div class="cat-name">${cat?cat.name:'(已刪除)'}　<span class="type-name"></span></div>
         ${note ? `<div class="note"></div>` : ''}
       </div>
-      <button class="icon-btn edit-log-btn">✏️</button>
-      <button class="icon-btn del-log-btn">✕</button>
+      <button class="icon-btn act edit-log-btn" aria-label="編輯"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button>
+      <button class="icon-btn act del del-log-btn" aria-label="刪除"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button>
     `;
     row.querySelector('.type-name').textContent = typesText;
     if(note) row.querySelector('.note').textContent = note;
@@ -2949,9 +2993,9 @@ function renderManageCatsSettings(){
     <div class="manage-list-row">
       ${catAvatarHtml(c, 28)}
       <span class="name">${c.name}</span>
-      <button class="rename-cat-btn" data-i="${i}" type="button">✏️</button>
-      <button class="recolor-cat-btn" data-i="${i}" type="button">🎨</button>
-      <button class="danger del-cat-btn" data-i="${i}" type="button">🗑</button>
+      <button class="rename-cat-btn" data-i="${i}" type="button" aria-label="編輯"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button>
+      <button class="recolor-cat-btn" data-i="${i}" type="button" aria-label="換顏色"><svg class="i" aria-hidden="true"><use href="#i-palette"/></svg></button>
+      <button class="danger del-cat-btn" data-i="${i}" type="button" aria-label="刪除"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button>
     </div>
   `).join('');
   wrap.onclick = (e)=>{
@@ -3032,7 +3076,7 @@ function renderCatHomeCard(){
   if(groomSchedules.length===0){
     body.innerHTML = '<p class="home-summary" style="margin:0;">還沒有設定提醒排程</p>';
   } else if(dueItems.length===0){
-    body.innerHTML = '<p class="home-summary" style="margin:0;">目前沒有逾期的美容保養提醒 🎉</p>';
+    body.innerHTML = '<p class="home-summary" style="margin:0;">目前沒有逾期的美容保養提醒</p>';
   } else {
     body.innerHTML = dueItems.slice(0,3).map(it=>`
       <div class="todo-mini-row">
@@ -3073,7 +3117,7 @@ function renderHome(){
 
   const todoListEl = document.getElementById('homeTodoList');
   if(todoPreview.length===0){
-    todoListEl.innerHTML = '<p class="home-summary" style="margin:0;">目前沒有待辦事項 🎉</p>';
+    todoListEl.innerHTML = '<p class="home-summary" style="margin:0;">目前沒有待辦事項</p>';
   } else {
     todoListEl.innerHTML = todoPreview.map(t=>{
       let dueLabel = '未設期限', dueCls = 'none';
@@ -3126,7 +3170,7 @@ function renderHome(){
     if(r.time) metaParts.push(r.time);
     recipeBody.innerHTML = `
       <div class="recipe-preview">
-        <div class="recipe-thumb">🍽️</div>
+        <div class="recipe-thumb" style="color:var(--rust);"><svg class="i" style="width:22px;height:22px;" aria-hidden="true"><use href="#i-utensils"/></svg></div>
         <div class="recipe-info">
           <div class="name">最近新增：${r.name}</div>
           <div class="meta">${metaParts.join(' · ')}</div>
@@ -3148,7 +3192,7 @@ function renderHome(){
   const shopBody = document.getElementById('homeShopBody');
   const unchecked = shopping.filter(i=>!i.checked);
   if(unchecked.length===0){
-    shopBody.innerHTML = '<p class="home-summary" style="margin:0;">採買清單是空的，暫時不用買東西 👍</p>';
+    shopBody.innerHTML = '<p class="home-summary" style="margin:0;">採買清單是空的，暫時不用買東西</p>';
   } else {
     shopBody.innerHTML = `
       <p class="home-summary">還有 <b>${unchecked.length}</b> 項還沒買：</p>
@@ -3164,11 +3208,11 @@ function renderHome(){
 
 /* ============ 設定頁面邏輯 ============ */
 const homeOrderMeta = {
-  todo:   { id:'homeTodoCard',   label:'✅ 待辦事項' },
-  money:  { id:'homeMoneyCard',  label:'💰 本月支出' },
-  recipe: { id:'homeRecipeCard', label:'🍳 料理紀錄' },
-  shop:   { id:'homeShopCard',   label:'🧺 採買清單' },
-  cat:    { id:'homeCatCard',    label:'🐱 喵喵日曆' },
+  todo:   { id:'homeTodoCard',   label:'待辦事項' },
+  money:  { id:'homeMoneyCard',  label:'本月支出' },
+  recipe: { id:'homeRecipeCard', label:'料理紀錄' },
+  shop:   { id:'homeShopCard',   label:'採買清單' },
+  cat:    { id:'homeCatCard',    label:'喵喵日曆' },
 };
 function applyHomeOrder(){
   const parent = document.getElementById('home');
@@ -3380,8 +3424,8 @@ function renderManageList(containerId, list, handlers){
       <span class="name">${name}</span>
       <button class="mv-up" data-i="${i}" ${i===0?'disabled':''} type="button">▲</button>
       <button class="mv-down" data-i="${i}" ${i===list.length-1?'disabled':''} type="button">▼</button>
-      <button class="rename-btn" data-i="${i}" type="button">✏️</button>
-      <button class="danger del-btn" data-i="${i}" type="button">🗑</button>
+      <button class="rename-btn" data-i="${i}" type="button" aria-label="編輯"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button>
+      <button class="danger del-btn" data-i="${i}" type="button" aria-label="刪除"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button>
     </div>
   `).join('');
   wrap.onclick = (e)=>{
