@@ -14,6 +14,7 @@
 <link rel="manifest" href="manifest.json">
 <title>小日子</title>
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Huninn&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans+TC:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap');
 
 :root{
@@ -443,6 +444,118 @@ textarea.field{ min-height:56px; resize:vertical; }
 .mono-badge.c5{ background:var(--pillBg); color:var(--ink); }
 .empty-icon:has(.mono-badge){ opacity:1; }
 
+/* ===== 貼紙風主題 ===== */
+.bt-item svg.bt-cute{ display:none; width:34px; height:34px; stroke:none; }
+html[data-theme="sticker"]{
+  --bg:#FFFCF6; --card:#FFFFFF; --cardBorder:#D9D2CB;
+  --ink:#3E3A39; --muted:#6B6461; --sage:#B9DAA5; --sageDark:#3F5A33;
+  --rust:#B9503A; --rustSoft:#FDEFEA;
+  --red:#B5483A; --redSoft:#FDEFEA;
+  --orange:#E0A33A; --orangeSoft:#FFF3D6;
+  --field:#FFFFFF; --pillBg:#FFF3D6; --subtleBg:#FFF8EA;
+  --sageBg:#EEF6E8; --blueBg:#E6F2F8; --blueText:#2C5578;
+  --redText:#8A342C; --orangeText:#6F4D0F;
+}
+html[data-theme="sticker"] body,
+html[data-theme="sticker"] h1, html[data-theme="sticker"] .sc-title, html[data-theme="sticker"] .recipe-name,
+html[data-theme="sticker"] .form-title, html[data-theme="sticker"] .modal-title, html[data-theme="sticker"] .home-headline{
+  font-family:'Huninn','PingFang TC','Noto Sans TC','Microsoft JhengHei',sans-serif;
+}
+html[data-theme="sticker"] h1{ font-weight:800; }
+html[data-theme="sticker"] input::placeholder, html[data-theme="sticker"] textarea::placeholder{ color:#9A918B; }
+html[data-theme="sticker"] .header-wrap{ background:var(--bg); border-bottom:3px solid var(--ink); }
+html[data-theme="sticker"] .logo{ background:#F6D27A; border:2.5px solid var(--ink); border-radius:50%; color:var(--ink) !important; }
+html[data-theme="sticker"] .ver-badge{ border:2px solid var(--ink); color:var(--ink); background:#fff; }
+html[data-theme="sticker"] #openSettingsBtn{ width:42px; height:42px; justify-content:center; border:2.5px solid var(--ink); border-radius:15px; background:#A8D3E6; box-shadow:3px 3px 0 var(--ink); color:var(--ink) !important; }
+
+html[data-theme="sticker"] .section-card,
+html[data-theme="sticker"] .recipe-card,
+html[data-theme="sticker"] .settle-card,
+html[data-theme="sticker"] .money-summary{
+  position:relative; border:3px solid var(--ink); border-radius:24px; box-shadow:5px 5px 0 var(--ink);
+}
+html[data-theme="sticker"] .section-card::after{
+  content:""; position:absolute; inset:5px; border:1.5px dashed #D9D2CB; border-radius:18px; pointer-events:none;
+}
+html[data-theme="sticker"] #homeTodoCard{ background:#FDEFEA; }
+html[data-theme="sticker"] #homeMoneyCard{ background:#FFF3D6; }
+html[data-theme="sticker"] #homeRecipeCard{ background:#EEF6E8; }
+html[data-theme="sticker"] #homeShopCard{ background:#E6F2F8; }
+html[data-theme="sticker"] #homeCatCard{ background:#F0EAF8; }
+html[data-theme="sticker"] .money-summary{ background:#FFF3D6; }
+html[data-theme="sticker"] .settle-card{ background:#E6F2F8; }
+html[data-theme="sticker"] .section-card{ margin-bottom:20px; }
+html[data-theme="sticker"] .sc-link{ color:var(--ink); background:#fff; border:2px solid var(--ink); border-radius:14px; box-shadow:2px 2px 0 var(--ink); padding:3px 10px; font-weight:700; }
+html[data-theme="sticker"] .mono-badge{ border:2.5px solid var(--ink); color:var(--ink); }
+html[data-theme="sticker"] .mono-badge.c1{ background:#F2A497; }
+html[data-theme="sticker"] .mono-badge.c2{ background:#F6D27A; }
+html[data-theme="sticker"] .mono-badge.c3{ background:#B9DAA5; }
+html[data-theme="sticker"] .mono-badge.c4{ background:#A8D3E6; }
+html[data-theme="sticker"] .mono-badge.c5{ background:#CDBFE3; }
+
+html[data-theme="sticker"] .add-big-btn{ background:#F2A497; color:var(--ink); border:3px solid var(--ink); border-radius:20px; box-shadow:4px 4px 0 var(--ink); font-weight:800; font-size:15px; }
+html[data-theme="sticker"] .save-btn{ background:#F2A497; color:var(--ink); border:3px solid var(--ink); border-radius:16px; box-shadow:3px 3px 0 var(--ink); font-weight:800; }
+html[data-theme="sticker"] .checkout-btn{ background:#A8D3E6 !important; color:var(--ink); border:3px solid var(--ink); border-radius:16px; box-shadow:3px 3px 0 var(--ink); font-weight:800; }
+html[data-theme="sticker"] .add-small-btn{ background:#B9DAA5; color:var(--ink); border:2.5px solid var(--ink); box-shadow:2px 2px 0 var(--ink); }
+html[data-theme="sticker"] .qa-btn, html[data-theme="sticker"] .add-split-btn{ background:#FFF3D6; color:var(--ink); border:2px dashed var(--ink); }
+html[data-theme="sticker"] .del-form-btn, html[data-theme="sticker"] .clear-btn, html[data-theme="sticker"] .settings-danger-btn{ border:2px solid var(--ink); }
+html[data-theme="sticker"] .camera-fab{ background:#A8D3E6; color:var(--ink); border:3px solid var(--ink); box-shadow:4px 4px 0 var(--ink); }
+html[data-theme="sticker"] .month-nav-btn{ background:#fff; color:var(--ink); border:2px solid var(--ink); box-shadow:2px 2px 0 var(--ink); }
+
+html[data-theme="sticker"] .field, html[data-theme="sticker"] .settings-text-input, html[data-theme="sticker"] .setting-select{ border:2px solid var(--ink); border-radius:12px; }
+html[data-theme="sticker"] .field:focus{ box-shadow:2px 2px 0 var(--ink); }
+html[data-theme="sticker"] .split-row.multi{ border:2px solid var(--ink); border-radius:14px; }
+html[data-theme="sticker"] .split-note-input{ border:2px dashed var(--ink); }
+html[data-theme="sticker"] .payer-chip{ border:2px solid var(--ink); border-radius:14px; }
+html[data-theme="sticker"] .payer-chip.active{ background:#B9DAA5; border-color:var(--ink); color:var(--ink); }
+html[data-theme="sticker"] .payer-chip.active.partner{ background:#A8D3E6; border-color:var(--ink); color:var(--ink); }
+html[data-theme="sticker"] .split-payer-mini button{ border:2px solid var(--ink); }
+html[data-theme="sticker"] .split-payer-mini button.active{ background:#B9DAA5; border-color:var(--ink); color:var(--ink); }
+html[data-theme="sticker"] .split-payer-mini button.active.partner{ background:#A8D3E6; border-color:var(--ink); color:var(--ink); }
+html[data-theme="sticker"] .balance-bar{ border:2px solid var(--ink); }
+
+html[data-theme="sticker"] .tag, html[data-theme="sticker"] .pri-tag, html[data-theme="sticker"] .payer-badge{ border:2px solid var(--ink); color:var(--ink); }
+html[data-theme="sticker"] .tag{ background:#FFF3D6; }
+html[data-theme="sticker"] .tag-time{ background:#FDEFEA; color:var(--ink); }
+html[data-theme="sticker"] .payer-badge.me{ background:#B9DAA5; color:var(--ink); }
+html[data-theme="sticker"] .payer-badge.partner{ background:#A8D3E6; color:var(--ink); }
+html[data-theme="sticker"] .pri-high{ background:#F2A497; color:var(--ink); }
+html[data-theme="sticker"] .pri-normal{ background:#fff; color:var(--ink); }
+html[data-theme="sticker"] .icon-btn.act{ border:2px solid var(--ink); color:var(--ink); box-shadow:2px 2px 0 var(--ink); background:#fff; }
+html[data-theme="sticker"] .icon-btn.act.del{ background:#FDEFEA; color:var(--red); }
+html[data-theme="sticker"] .expense-icon, html[data-theme="sticker"] .recipe-thumb{ border:2px solid var(--ink); background:#FFF3D6; }
+html[data-theme="sticker"] .date-label{ color:var(--ink); font-size:13px; }
+html[data-theme="sticker"] .date-label .date-total{ background:#F6D27A; color:var(--ink); border:2px solid var(--ink); border-radius:12px; box-shadow:2px 2px 0 var(--ink); padding:2px 10px; font-size:14px; font-weight:800; }
+html[data-theme="sticker"] .expense-row, html[data-theme="sticker"] .todo-row{ border-bottom:2px dotted #D9D2CB; }
+html[data-theme="sticker"] .expense-row:last-child, html[data-theme="sticker"] .todo-row:last-child{ border-bottom:none; }
+html[data-theme="sticker"] .shop-row{ border:2px solid var(--ink); border-radius:16px; box-shadow:2px 2px 0 var(--ink); }
+html[data-theme="sticker"] .checkbox{ border:2px solid var(--ink); }
+html[data-theme="sticker"] .checkbox.on{ background:#B9DAA5; border-color:var(--ink); color:var(--ink); }
+html[data-theme="sticker"] .ing-chip{ border:2px solid var(--ink); }
+html[data-theme="sticker"] .reminder-banner{ border:2.5px solid var(--ink); box-shadow:3px 3px 0 var(--ink); }
+html[data-theme="sticker"] .reminder-banner.today{ border-color:var(--ink); }
+
+html[data-theme="sticker"] .cat-bar-track{ height:12px; border:2px solid var(--ink); border-radius:8px; background:#fff; overflow:hidden; }
+html[data-theme="sticker"] .cat-bar-fill{ background:#B9DAA5; border-right:2px solid var(--ink); }
+html[data-theme="sticker"] .cat-bar-row.active .cat-bar-fill{ background:#F2A497; }
+html[data-theme="sticker"] .cal-cell{ border:1.5px solid #D9D2CB; }
+html[data-theme="sticker"] .cal-cell.today{ border:2.5px solid var(--ink); }
+html[data-theme="sticker"] .cal-cell.selected{ background:#F6D27A; }
+html[data-theme="sticker"] .toggle-switch{ border:2px solid var(--ink); }
+html[data-theme="sticker"] .toggle-switch.on{ background:#B9DAA5; }
+html[data-theme="sticker"] .theme-swatch.active{ border:3px solid var(--ink); }
+
+html[data-theme="sticker"] .modal-sheet, html[data-theme="sticker"] .form-card{ border:3px solid var(--ink); border-bottom:none; border-radius:26px 26px 0 0; }
+
+html[data-theme="sticker"] .bottom-bar{ border-top:3px solid var(--ink); background:var(--bg); padding-top:6px; }
+html[data-theme="sticker"] .bt-item{ color:var(--muted); border:2px solid transparent; border-radius:14px; padding:4px 0 3px; margin:0 2px; gap:1px; }
+html[data-theme="sticker"] .bt-item svg.bt-line{ display:none; }
+html[data-theme="sticker"] .bt-item svg.bt-cute{ display:block; }
+html[data-theme="sticker"] .bottom-bar.no-icon .bt-item svg.bt-cute{ display:none; }
+html[data-theme="sticker"] .bt-item .label-pill{ padding:0 4px; background:transparent !important; }
+html[data-theme="sticker"] .bt-item.active{ background:#F6D27A; border-color:var(--ink); box-shadow:2px 2px 0 var(--ink); color:var(--ink); font-weight:800; }
+html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); border:2px solid var(--ink); }
+
 .sc-link{ font-size:11.5px; color:var(--rust); font-weight:600; }
 .recipe-preview{ display:flex; align-items:center; gap:10px; }
 .recipe-thumb{ width:44px; height:44px; border-radius:11px; background:var(--rustSoft); display:flex; align-items:center; justify-content:center; font-size:20px; flex-shrink:0; }
@@ -490,6 +603,12 @@ textarea.field{ min-height:56px; resize:vertical; }
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<symbol id="c-home" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M8 14 V26 H24 V14" fill="#FFFFFF"/><path d="M5 15 L16 5 L27 15 Z" style="fill:var(--a)"/><path d="M14 26 V19 H18 V26" style="fill:var(--b)"/></g></symbol>
+<symbol id="c-pot" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M3.5 17 H6 M26 17 H28.5" fill="none"/><path d="M8 14 Q16 5 24 14 Z" style="fill:var(--b)"/><path d="M6 14 H26 V19 A7 7 0 0 1 19 26 H13 A7 7 0 0 1 6 19 Z" style="fill:var(--a)"/><circle cx="16" cy="7.5" r="1.5" fill="#FFFFFF"/></g></symbol>
+<symbol id="c-bag" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 12 V9 A4 4 0 0 1 20 9 V12" fill="none"/><path d="M7 12 H25 L26.5 26 H5.5 Z" style="fill:var(--a)"/><circle cx="13" cy="18" r="1" fill="#3E3A39"/><circle cx="19" cy="18" r="1" fill="#3E3A39"/><path d="M14 21 Q16 23 18 21" fill="none" stroke-width="1.8"/></g></symbol>
+<symbol id="c-wallet" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 10 L20 5.5 L23 10 Z" style="fill:var(--b)"/><path d="M5 10 H25 A2 2 0 0 1 27 12 V24 A2 2 0 0 1 25 26 H7 A2 2 0 0 1 5 24 Z" style="fill:var(--a)"/><circle cx="22" cy="18" r="2.2" fill="#FFFFFF"/></g></symbol>
+<symbol id="c-todo" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M8 7 H24 A1.5 1.5 0 0 1 25.5 8.5 V26 A1.5 1.5 0 0 1 24 27.5 H8 A1.5 1.5 0 0 1 6.5 26 V8.5 A1.5 1.5 0 0 1 8 7 Z" fill="#FFFFFF"/><path d="M12 4.5 H20 V9 H12 Z" style="fill:var(--a)"/><path d="M11.5 18 L15 21.5 L21 14.5" fill="none"/></g></symbol>
+<symbol id="c-cat" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 15 L7.5 5 L14.5 9.5 Z M25 15 L24.5 5 L17.5 9.5 Z" style="fill:var(--b)"/><ellipse cx="16" cy="19" rx="10" ry="8.5" style="fill:var(--a)"/><circle cx="12.5" cy="18.5" r="1.2" fill="#3E3A39" stroke="none"/><circle cx="19.5" cy="18.5" r="1.2" fill="#3E3A39" stroke="none"/><path d="M15 21.5 h2 l-1 1.4 Z" fill="#3E3A39" stroke-width="1"/></g></symbol>
 <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
 <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
 <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></symbol>
@@ -514,7 +633,7 @@ textarea.field{ min-height:56px; resize:vertical; }
   <div class="header-row">
     <div class="logo" style="color:var(--rust);"><svg class="i" style="width:22px;height:22px;" aria-hidden="true"><use href="#i-book"/></svg></div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.8</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.9</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -815,27 +934,33 @@ textarea.field{ min-height:56px; resize:vertical; }
 
 <div class="bottom-bar" id="bottomBar">
   <button class="bt-item active" data-tab="home">
-    <svg viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10"/></svg>
+    <svg class="bt-line" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M5 10v10h5v-6h4v6h5V10"/></svg>
+    <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#F2A497; --b:#F6D27A;" aria-hidden="true"><use href="#c-home"/></svg>
     <span class="label-pill">首頁</span>
   </button>
   <button class="bt-item" data-tab="recipes">
-    <svg viewBox="0 0 24 24"><path d="M4 13a8 8 0 0116 0M4 13v6a1 1 0 001 1h14a1 1 0 001-1v-6M9 13V8a3 3 0 016 0v5"/></svg>
+    <svg class="bt-line" viewBox="0 0 24 24"><path d="M4 13a8 8 0 0116 0M4 13v6a1 1 0 001 1h14a1 1 0 001-1v-6M9 13V8a3 3 0 016 0v5"/></svg>
+    <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#B9DAA5; --b:#FFF3D6;" aria-hidden="true"><use href="#c-pot"/></svg>
     <span class="label-pill">料理</span>
   </button>
   <button class="bt-item" data-tab="shopping">
-    <svg viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8zM9 8V6a3 3 0 016 0v2"/></svg>
+    <svg class="bt-line" viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8zM9 8V6a3 3 0 016 0v2"/></svg>
+    <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#A8D3E6;" aria-hidden="true"><use href="#c-bag"/></svg>
     <span class="label-pill">採買</span><span class="bt-badge" id="shopBadge" style="display:none;">0</span>
   </button>
   <button class="bt-item" data-tab="money">
-    <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1.5"/><path d="M3 10h18M8 6V4h8v2"/></svg>
+    <svg class="bt-line" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1.5"/><path d="M3 10h18M8 6V4h8v2"/></svg>
+    <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#F6D27A; --b:#F2A497;" aria-hidden="true"><use href="#c-wallet"/></svg>
     <span class="label-pill">記帳</span>
   </button>
   <button class="bt-item" data-tab="todo">
-    <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+    <svg class="bt-line" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
+    <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#F2A497;" aria-hidden="true"><use href="#c-todo"/></svg>
     <span class="label-pill">待辦</span><span class="bt-badge" id="todoBadge" style="display:none;">0</span>
   </button>
   <button class="bt-item" data-tab="catcal">
-    <svg viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="6.5"/><path d="M8 8l-2-4 3.5 2.5M16 8l2-4-3.5 2.5"/></svg>
+    <svg class="bt-line" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="6.5"/><path d="M8 8l-2-4 3.5 2.5M16 8l2-4-3.5 2.5"/></svg>
+    <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#CDBFE3; --b:#F2A497;" aria-hidden="true"><use href="#c-cat"/></svg>
     <span class="label-pill">喵喵</span><span class="bt-badge" id="catBadge" style="display:none;">0</span>
   </button>
 </div>
@@ -1025,6 +1150,15 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.9',
+    date: '2026-10-27',
+    changes: [
+      '設定的主題色系新增第四個「貼紙風」：奶油紙底色、深色粗外框加硬陰影、卡片內縫線虛線、粉彩色塊，字體改用圓體',
+      '貼紙風下，首頁五張卡片各用一個粉彩色，底部導覽列換成手繪小插圖（小房子、小鍋、購物袋、錢包、記事板、貓咪），目前所在頁以黃色貼紙底標示',
+      '原本的暖色、海洋藍綠、深色三個主題不受影響',
+    ],
+  },
   {
     version: 'v7.8',
     date: '2026-10-16',
@@ -3277,6 +3411,7 @@ function renderSettingsPanel(){
     { key:'warm', label:'暖色系', dot:'#C1622C' },
     { key:'ocean', label:'海洋藍綠', dot:'#2D7A8C' },
     { key:'dark', label:'深色模式', dot:'#D98553' },
+    { key:'sticker', label:'貼紙風', dot:'#F2A497' },
   ];
   const swatchRow = document.getElementById('themeSwatchRow');
   swatchRow.innerHTML = themes.map(t=>`
