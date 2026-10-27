@@ -237,6 +237,9 @@ textarea.field{ min-height:56px; resize:vertical; }
 .month-nav{ display:flex; align-items:center; gap:8px; }
 .month-nav-btn{ border:none; background:var(--rustSoft); color:var(--rust); width:26px; height:26px; border-radius:8px; font-size:13px; cursor:pointer; }
 .month-nav-btn:disabled{ opacity:0.35; }
+.month-nav-btn .i{ width:14px; height:14px; pointer-events:none; }
+.manage-list-row button .i{ width:16px; height:16px; pointer-events:none; vertical-align:middle; }
+.manage-list-row button:disabled{ opacity:0.3; }
 .month-total .lbl{ font-size:12px; color:var(--muted); }
 .month-total .val{ font-family:'IBM Plex Mono',monospace; font-size:24px; font-weight:700; color:var(--ink); }
 
@@ -541,8 +544,14 @@ html[data-theme="sticker"] .cat-bar-row.active .cat-bar-fill{ background:#F2A497
 html[data-theme="sticker"] .cal-cell{ border:1.5px solid #D9D2CB; }
 html[data-theme="sticker"] .cal-cell.today{ border:2.5px solid var(--ink); }
 html[data-theme="sticker"] .cal-cell.selected{ background:#F6D27A; }
-html[data-theme="sticker"] .toggle-switch{ border:2px solid var(--ink); }
+html[data-theme="sticker"] .toggle-switch{ width:52px; height:30px; border:2.5px solid var(--ink); background:#fff; box-shadow:2px 2px 0 var(--ink); box-sizing:border-box; }
 html[data-theme="sticker"] .toggle-switch.on{ background:#B9DAA5; }
+html[data-theme="sticker"] .toggle-switch .knob{ width:20px; height:20px; top:2px; left:2px; background:#F6D27A; border:2px solid var(--ink); box-sizing:border-box; }
+html[data-theme="sticker"] .toggle-switch.on .knob{ left:24px; background:#fff; }
+html[data-theme="sticker"] .month-nav-btn{ width:30px; height:30px; border-radius:10px; display:inline-flex; align-items:center; justify-content:center; padding:0; }
+html[data-theme="sticker"] .month-nav-btn:disabled{ box-shadow:none; opacity:.4; }
+html[data-theme="sticker"] .move-up-btn, html[data-theme="sticker"] .move-down-btn, html[data-theme="sticker"] .mv-up, html[data-theme="sticker"] .mv-down{ width:30px; height:30px; padding:0; background:#fff; color:var(--ink); border:2px solid var(--ink); border-radius:10px; box-shadow:2px 2px 0 var(--ink); display:inline-flex; align-items:center; justify-content:center; }
+html[data-theme="sticker"] .move-up-btn:disabled, html[data-theme="sticker"] .move-down-btn:disabled, html[data-theme="sticker"] .mv-up:disabled, html[data-theme="sticker"] .mv-down:disabled{ box-shadow:none; opacity:.35; }
 html[data-theme="sticker"] .theme-swatch.active{ border:3px solid var(--ink); }
 
 html[data-theme="sticker"] .modal-sheet, html[data-theme="sticker"] .form-card{ border:3px solid var(--ink); border-bottom:none; border-radius:26px 26px 0 0; }
@@ -626,6 +635,10 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
 <symbol id="i-wallet" viewBox="0 0 24 24"><path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/></symbol>
 <symbol id="i-note" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></symbol>
 <symbol id="i-receipt" viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 17.5v-11"/></symbol>
+<symbol id="i-chev-l" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+<symbol id="i-chev-r" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+<symbol id="i-chev-u" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"/></symbol>
+<symbol id="i-chev-d" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
 <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
 </svg>
 
@@ -633,7 +646,7 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
   <div class="header-row">
     <div class="logo" style="color:var(--rust);"><svg class="i" style="width:22px;height:22px;" aria-hidden="true"><use href="#i-book"/></svg></div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.9</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.10</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -767,9 +780,9 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
     <div class="money-summary">
       <div class="month-total">
         <div class="month-nav">
-          <button class="month-nav-btn" id="prevMonthBtn">◀</button>
+          <button class="month-nav-btn" id="prevMonthBtn" aria-label="上個月"><svg class="i" aria-hidden="true"><use href="#i-chev-l"/></svg></button>
           <span class="lbl" id="monthLabel">本月支出</span>
-          <button class="month-nav-btn" id="nextMonthBtn">▶</button>
+          <button class="month-nav-btn" id="nextMonthBtn" aria-label="下個月"><svg class="i" aria-hidden="true"><use href="#i-chev-r"/></svg></button>
         </div>
         <span class="val" id="monthTotal">$0</span>
       </div>
@@ -877,9 +890,9 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
     <div class="money-summary">
       <div class="month-total">
         <div class="month-nav">
-          <button class="month-nav-btn" id="catPrevMonthBtn">◀</button>
+          <button class="month-nav-btn" id="catPrevMonthBtn" aria-label="上個月"><svg class="i" aria-hidden="true"><use href="#i-chev-l"/></svg></button>
           <span class="lbl" id="catMonthLabel">9月</span>
-          <button class="month-nav-btn" id="catNextMonthBtn">▶</button>
+          <button class="month-nav-btn" id="catNextMonthBtn" aria-label="下個月"><svg class="i" aria-hidden="true"><use href="#i-chev-r"/></svg></button>
         </div>
         <button class="icon-btn act" id="openScheduleBtn" aria-label="提醒排程"><svg class="i" aria-hidden="true"><use href="#i-alarm"/></svg></button>
       </div>
@@ -1150,6 +1163,14 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.10',
+    date: '2026-10-27',
+    changes: [
+      '月份切換與排序用的箭頭改成圖示，不再顯示成表情符號',
+      '貼紙風下，箭頭按鈕與設定頁的滑動鈕改成粗外框加硬陰影的貼紙樣式',
+    ],
+  },
   {
     version: 'v7.9',
     date: '2026-10-27',
@@ -3369,8 +3390,8 @@ function renderHomeOrderList(){
     return `
       <div class="manage-list-row">
         <span class="name">${meta.label}</span>
-        <button class="move-up-btn" data-i="${i}" ${i===0?'disabled':''} type="button">▲</button>
-        <button class="move-down-btn" data-i="${i}" ${i===homeOrder.length-1?'disabled':''} type="button">▼</button>
+        <button class="move-up-btn" data-i="${i}" ${i===0?'disabled':''} type="button" aria-label="上移"><svg class="i" aria-hidden="true"><use href="#i-chev-u"/></svg></button>
+        <button class="move-down-btn" data-i="${i}" ${i===homeOrder.length-1?'disabled':''} type="button" aria-label="下移"><svg class="i" aria-hidden="true"><use href="#i-chev-d"/></svg></button>
       </div>
     `;
   }).join('');
@@ -3557,8 +3578,8 @@ function renderManageList(containerId, list, handlers){
   wrap.innerHTML = list.map((name,i)=>`
     <div class="manage-list-row">
       <span class="name">${name}</span>
-      <button class="mv-up" data-i="${i}" ${i===0?'disabled':''} type="button">▲</button>
-      <button class="mv-down" data-i="${i}" ${i===list.length-1?'disabled':''} type="button">▼</button>
+      <button class="mv-up" data-i="${i}" ${i===0?'disabled':''} type="button" aria-label="上移"><svg class="i" aria-hidden="true"><use href="#i-chev-u"/></svg></button>
+      <button class="mv-down" data-i="${i}" ${i===list.length-1?'disabled':''} type="button" aria-label="下移"><svg class="i" aria-hidden="true"><use href="#i-chev-d"/></svg></button>
       <button class="rename-btn" data-i="${i}" type="button" aria-label="編輯"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button>
       <button class="danger del-btn" data-i="${i}" type="button" aria-label="刪除"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button>
     </div>
