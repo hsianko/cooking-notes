@@ -234,6 +234,20 @@ textarea.field{ min-height:56px; resize:vertical; }
 /* ===== 記帳 ===== */
 .money-summary{ background:var(--card); border:1px solid var(--cardBorder); border-radius:14px; padding:16px; margin-bottom:14px; }
 .month-total{ display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; }
+.seg{ display:flex; gap:6px; padding:4px; background:var(--pillBg); border-radius:14px; margin-bottom:14px; }
+.seg-btn{ flex:1; border:2px solid transparent; background:transparent; padding:8px; border-radius:10px; font-size:14px; font-weight:600; color:var(--muted); font-family:inherit; cursor:pointer; display:flex; gap:6px; justify-content:center; align-items:center; }
+.seg-btn.active{ background:var(--card); color:var(--rust); }
+.seg-n{ display:none; min-width:16px; height:16px; border-radius:10px; background:var(--rust); color:#fff; font-size:10px; font-weight:700; align-items:center; justify-content:center; padding:0 4px; font-family:'IBM Plex Mono',monospace; }
+.cr-card{ background:var(--card); border:1px solid var(--cardBorder); border-radius:16px; padding:16px; margin-bottom:14px; text-align:center; }
+.cr-label{ font-size:14px; font-weight:700; color:var(--muted); }
+.cr-num{ font-family:'IBM Plex Mono',monospace; font-weight:800; font-size:72px; line-height:1.1; margin:4px 0 12px; font-variant-numeric:tabular-nums; }
+.cr-row{ display:flex; gap:10px; }
+.cr-minus{ width:76px; height:76px; border-radius:18px; border:1.5px solid var(--cardBorder); background:var(--field); color:var(--ink); font-size:30px; font-weight:700; cursor:pointer; font-family:inherit; }
+.cr-plus{ flex:1; height:76px; border-radius:18px; border:none; background:var(--rust); color:#fff; font-size:24px; font-weight:800; cursor:pointer; font-family:inherit; touch-action:manipulation; }
+.cr-plus:active,.cr-minus:active{ transform:scale(.97); }
+.cr-tools{ margin-top:6px; }
+.cr-tool-row{ display:flex; justify-content:space-between; align-items:center; padding:10px 2px; font-size:14px; }
+.cr-reset{ width:100%; margin-top:6px; padding:11px; border-radius:12px; border:1.5px solid var(--red); background:transparent; color:var(--red); font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
 .month-nav{ display:flex; align-items:center; gap:8px; }
 .month-nav-btn{ border:none; background:var(--rustSoft); color:var(--rust); width:26px; height:26px; border-radius:8px; font-size:13px; cursor:pointer; }
 .month-nav-btn:disabled{ opacity:0.35; }
@@ -544,6 +558,18 @@ html[data-theme="sticker"] .cat-bar-row.active .cat-bar-fill{ background:#F2A497
 html[data-theme="sticker"] .cal-cell{ border:1.5px solid #D9D2CB; }
 html[data-theme="sticker"] .cal-cell.today{ border:2.5px solid var(--ink); }
 html[data-theme="sticker"] .cal-cell.selected{ background:#F6D27A; }
+/* v7.10 整合分頁／鉤織 */
+html[data-theme="sticker"] .seg{ background:#fff; border:2.5px solid var(--ink); border-radius:16px; box-shadow:3px 3px 0 var(--ink); }
+html[data-theme="sticker"] .seg-btn{ color:var(--ink); font-weight:700; border-radius:12px; }
+html[data-theme="sticker"] .seg-btn.active{ background:#F6D27A; border-color:var(--ink); box-shadow:2px 2px 0 var(--ink); color:var(--ink); font-weight:800; }
+html[data-theme="sticker"] .seg-n{ background:#F2A497; color:var(--ink); border:2px solid var(--ink); }
+html[data-theme="sticker"] .cr-card{ position:relative; background:#FFF3D6; border:3px solid var(--ink); border-radius:24px; box-shadow:5px 5px 0 var(--ink); }
+html[data-theme="sticker"] .cr-card:nth-of-type(2){ background:#E6F2F8; }
+html[data-theme="sticker"] .cr-label{ color:var(--ink); font-weight:800; }
+html[data-theme="sticker"] .cr-minus{ background:#fff; border:3px solid var(--ink); box-shadow:3px 3px 0 var(--ink); }
+html[data-theme="sticker"] .cr-plus{ background:#F2A497; color:var(--ink); border:3px solid var(--ink); box-shadow:4px 4px 0 var(--ink); }
+html[data-theme="sticker"] .cr-plus:active,html[data-theme="sticker"] .cr-minus:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
+html[data-theme="sticker"] .cr-reset{ border:2px solid var(--ink); color:var(--rust); background:#fff; border-radius:14px; }
 html[data-theme="sticker"] .toggle-switch{ width:52px; height:30px; border:2.5px solid var(--ink); background:#fff; box-shadow:2px 2px 0 var(--ink); box-sizing:border-box; }
 html[data-theme="sticker"] .toggle-switch.on{ background:#B9DAA5; }
 html[data-theme="sticker"] .toggle-switch .knob{ width:20px; height:20px; top:2px; left:2px; background:#F6D27A; border:2px solid var(--ink); box-sizing:border-box; }
@@ -617,6 +643,7 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
 <symbol id="c-bag" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M12 12 V9 A4 4 0 0 1 20 9 V12" fill="none"/><path d="M7 12 H25 L26.5 26 H5.5 Z" style="fill:var(--a)"/><circle cx="13" cy="18" r="1" fill="#3E3A39"/><circle cx="19" cy="18" r="1" fill="#3E3A39"/><path d="M14 21 Q16 23 18 21" fill="none" stroke-width="1.8"/></g></symbol>
 <symbol id="c-wallet" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 10 L20 5.5 L23 10 Z" style="fill:var(--b)"/><path d="M5 10 H25 A2 2 0 0 1 27 12 V24 A2 2 0 0 1 25 26 H7 A2 2 0 0 1 5 24 Z" style="fill:var(--a)"/><circle cx="22" cy="18" r="2.2" fill="#FFFFFF"/></g></symbol>
 <symbol id="c-todo" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M8 7 H24 A1.5 1.5 0 0 1 25.5 8.5 V26 A1.5 1.5 0 0 1 24 27.5 H8 A1.5 1.5 0 0 1 6.5 26 V8.5 A1.5 1.5 0 0 1 8 7 Z" fill="#FFFFFF"/><path d="M12 4.5 H20 V9 H12 Z" style="fill:var(--a)"/><path d="M11.5 18 L15 21.5 L21 14.5" fill="none"/></g></symbol>
+<symbol id="c-yarn" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><circle cx="15" cy="15" r="10" style="fill:var(--a)"/><path d="M7 11 Q15 17 23 9 M6 17 Q15 23 24 15 M11 24 Q13 14 19 6" fill="none" stroke-width="1.8"/><path d="M22 23 Q27 24 28 28" fill="none"/></g></symbol>
 <symbol id="c-cat" viewBox="0 0 32 32"><g stroke="#3E3A39" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"><path d="M7 15 L7.5 5 L14.5 9.5 Z M25 15 L24.5 5 L17.5 9.5 Z" style="fill:var(--b)"/><ellipse cx="16" cy="19" rx="10" ry="8.5" style="fill:var(--a)"/><circle cx="12.5" cy="18.5" r="1.2" fill="#3E3A39" stroke="none"/><circle cx="19.5" cy="18.5" r="1.2" fill="#3E3A39" stroke="none"/><path d="M15 21.5 h2 l-1 1.4 Z" fill="#3E3A39" stroke-width="1"/></g></symbol>
 <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></symbol>
 <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></symbol>
@@ -646,7 +673,7 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
   <div class="header-row">
     <div class="logo" style="color:var(--rust);"><svg class="i" style="width:22px;height:22px;" aria-hidden="true"><use href="#i-book"/></svg></div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.10</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.11</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -752,6 +779,7 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
 
   <!-- 採買清單 -->
   <section class="tabpanel" id="shopping">
+    <div class="seg"><button class="seg-btn" data-go="todo" type="button">待辦<span class="seg-n" data-for="todo"></span></button><button class="seg-btn active" data-go="shopping" type="button">採買<span class="seg-n" data-for="shop"></span></button></div>
     <div class="shop-input-row">
       <input class="field" id="newItemInput" placeholder="新增採買項目" style="flex:1;">
       <button class="add-small-btn" id="addItemBtn">＋</button>
@@ -848,6 +876,7 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
 
   <!-- 待辦 -->
   <section class="tabpanel" id="todo">
+    <div class="seg"><button class="seg-btn active" data-go="todo" type="button">待辦<span class="seg-n" data-for="todo"></span></button><button class="seg-btn" data-go="shopping" type="button">採買<span class="seg-n" data-for="shop"></span></button></div>
     <button class="add-big-btn" id="openTodoFormBtn">＋ 新增待辦事項</button>
 
     <div class="modal-overlay" id="todoFormModal">
@@ -884,6 +913,30 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
   </section>
 
   <!-- 喵喵日曆 -->
+  <section class="tabpanel" id="crochet">
+    <div class="cr-card">
+      <div class="cr-label">針數</div>
+      <div class="cr-num" id="crStitch">0</div>
+      <div class="cr-row">
+        <button class="cr-minus" id="crStitchMinus" type="button" aria-label="針數減一">−</button>
+        <button class="cr-plus" id="crStitchPlus" type="button">＋ 1 針</button>
+      </div>
+    </div>
+    <div class="cr-card">
+      <div class="cr-label">行數</div>
+      <div class="cr-num" id="crRow">0</div>
+      <div class="cr-row">
+        <button class="cr-minus" id="crRowMinus" type="button" aria-label="行數減一">−</button>
+        <button class="cr-plus" id="crRowPlus" type="button">＋ 1 行</button>
+      </div>
+    </div>
+    <button class="add-big-btn" id="crNextRow" type="button">換行：行數 +1，針數歸零</button>
+    <div class="cr-tools">
+      <div class="cr-tool-row"><span>鉤織時螢幕保持亮著</span><div class="toggle-switch" id="crWakeToggle"><div class="knob"></div></div></div>
+      <button class="cr-reset" id="crReset" type="button">全部歸零</button>
+    </div>
+  </section>
+
   <section class="tabpanel" id="catcal">
     <div id="catReminderWrap"></div>
 
@@ -956,11 +1009,6 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
     <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#B9DAA5; --b:#FFF3D6;" aria-hidden="true"><use href="#c-pot"/></svg>
     <span class="label-pill">料理</span>
   </button>
-  <button class="bt-item" data-tab="shopping">
-    <svg class="bt-line" viewBox="0 0 24 24"><path d="M6 8h12l-1 12H7L6 8zM9 8V6a3 3 0 016 0v2"/></svg>
-    <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#A8D3E6;" aria-hidden="true"><use href="#c-bag"/></svg>
-    <span class="label-pill">採買</span><span class="bt-badge" id="shopBadge" style="display:none;">0</span>
-  </button>
   <button class="bt-item" data-tab="money">
     <svg class="bt-line" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="1.5"/><path d="M3 10h18M8 6V4h8v2"/></svg>
     <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#F6D27A; --b:#F2A497;" aria-hidden="true"><use href="#c-wallet"/></svg>
@@ -970,6 +1018,11 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
     <svg class="bt-line" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>
     <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#F2A497;" aria-hidden="true"><use href="#c-todo"/></svg>
     <span class="label-pill">待辦</span><span class="bt-badge" id="todoBadge" style="display:none;">0</span>
+  </button>
+  <button class="bt-item" data-tab="crochet">
+    <svg class="bt-line" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M5 9c5 3 9 1 14-2M4.5 14c5 3 10 2 15-1M16 20c0-6-2-10-5-14"/></svg>
+    <svg class="bt-cute" viewBox="0 0 32 32" style="--a:#F9C5D1;" aria-hidden="true"><use href="#c-yarn"/></svg>
+    <span class="label-pill">鉤織</span>
   </button>
   <button class="bt-item" data-tab="catcal">
     <svg class="bt-line" viewBox="0 0 24 24"><circle cx="12" cy="13.5" r="6.5"/><path d="M8 8l-2-4 3.5 2.5M16 8l2-4-3.5 2.5"/></svg>
@@ -1163,6 +1216,15 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.11',
+    date: '2026-10-27',
+    changes: [
+      '「採買」併入「待辦」：上方可切換待辦與採買兩個分頁，各自的資料不變，數量角標也各自顯示',
+      '新增「鉤織」計數頁：針數、行數各有大按鈕可加減，「換行」一鍵行數加一並讓針數歸零',
+      '鉤織頁可選擇螢幕保持亮著，數字會自動保存',
+    ],
+  },
   {
     version: 'v7.10',
     date: '2026-10-27',
@@ -1619,20 +1681,33 @@ verModal.addEventListener('click', (e)=>{ if(e.target===verModal) verModal.class
 const subtitles = {
   home: '今天也要好好過生活',
   recipes: '烹煮方式 · 時間 · 採買清單',
-  shopping: '烹煮方式 · 時間 · 採買清單',
+  shopping: '採買清單',
   money: '記錄每一筆生活支出',
   todo: '待辦事項與提醒',
   catcal: '記錄貓咪們的美容保養',
+  crochet: '數針數、數行數',
 };
+function showTab(tab){
+  const navTab = tab==='shopping' ? 'todo' : tab;
+  document.querySelectorAll('.bt-item').forEach(b=>b.classList.toggle('active', b.dataset.tab===navTab));
+  document.querySelectorAll('.tabpanel').forEach(p=>p.classList.toggle('active', p.id===tab));
+  document.getElementById('subtitleText').textContent = subtitles[tab] || '';
+  if(typeof crWakeSync==='function') crWakeSync();
+}
 document.querySelectorAll('.bt-item').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    document.querySelectorAll('.bt-item').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.tabpanel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById(btn.dataset.tab).classList.add('active');
-    document.getElementById('subtitleText').textContent = subtitles[btn.dataset.tab] || '';
+    // 點「待辦」導覽時，回到上次停留的待辦／採買分頁
+    showTab(btn.dataset.tab==='todo' ? lastTodoTab : btn.dataset.tab);
   });
 });
+let lastTodoTab = 'todo';
+document.addEventListener('click', (e)=>{
+  const sb = e.target.closest('.seg-btn');
+  if(sb){ lastTodoTab = sb.dataset.go; showTab(sb.dataset.go); }
+});
+function setCount(kind,n){
+  document.querySelectorAll('[data-for="'+kind+'"]').forEach(el=>{ el.textContent = n>0?n:''; el.style.display = n>0?'inline-flex':'none'; });
+}
 
 /* ============ 料理紀錄 ============ */
 let recipes = JSON.parse(localStorage.getItem(STORAGE_RECIPES) || '[]');
@@ -1814,12 +1889,10 @@ function renderShopping(){
   const listEl = document.getElementById('shopList');
   const emptyEl = document.getElementById('shoppingEmpty');
   const checkoutBlock = document.getElementById('checkoutBlock');
-  const badge = document.getElementById('shopBadge');
   listEl.innerHTML = '';
   emptyEl.style.display = shopping.length===0 ? 'flex' : 'none';
   const uncheckedCount = shopping.filter(i=>!i.checked).length;
-  if(uncheckedCount>0){ badge.style.display='flex'; badge.textContent=uncheckedCount; }
-  else { badge.style.display='none'; }
+  setCount('shop', uncheckedCount);
   const checkedItems = shopping.filter(i=>i.checked);
   checkoutBlock.style.display = checkedItems.length>0 ? 'block' : 'none';
   document.getElementById('checkoutCountText').textContent = `已買 ${checkedItems.length} 樣`;
@@ -2752,6 +2825,7 @@ function renderTodos(){
   }
 
   const pendingCount = todos.filter(t=>!t.done).length;
+  setCount('todo', pendingCount);
   if(pendingCount>0){ badge.style.display='flex'; badge.textContent=pendingCount; }
   else { badge.style.display='none'; }
   renderHome();
@@ -3242,9 +3316,54 @@ function renderCatHomeCard(){
   }
 }
 
+/* ============ 鉤織計數 ============ */
+const STORAGE_CROCHET = 'xiaorizi-crochet';
+let crochet = { stitch:0, row:0, wake:true };
+try{ Object.assign(crochet, JSON.parse(localStorage.getItem(STORAGE_CROCHET) || '{}')); }catch(e){}
+function crSave(){ try{ localStorage.setItem(STORAGE_CROCHET, JSON.stringify(crochet)); }catch(e){} }
+function crRender(){
+  document.getElementById('crStitch').textContent = crochet.stitch;
+  document.getElementById('crRow').textContent = crochet.row;
+  document.getElementById('crWakeToggle').classList.toggle('on', !!crochet.wake);
+}
+function crBuzz(){ try{ if(navigator.vibrate) navigator.vibrate(12); }catch(e){} }
+function crChange(key, d){
+  crochet[key] = Math.max(0, crochet[key] + d);
+  crSave(); crRender(); crBuzz();
+}
+document.getElementById('crStitchPlus').addEventListener('click', ()=>crChange('stitch', 1));
+document.getElementById('crStitchMinus').addEventListener('click', ()=>crChange('stitch', -1));
+document.getElementById('crRowPlus').addEventListener('click', ()=>crChange('row', 1));
+document.getElementById('crRowMinus').addEventListener('click', ()=>crChange('row', -1));
+document.getElementById('crNextRow').addEventListener('click', ()=>{
+  crochet.row += 1; crochet.stitch = 0; crSave(); crRender(); crBuzz();
+});
+document.getElementById('crReset').addEventListener('click', ()=>{
+  if(!confirm('針數和行數都要歸零嗎？')) return;
+  crochet.stitch = 0; crochet.row = 0; crSave(); crRender();
+});
+let crLock = null;
+async function crWakeSync(){
+  const on = crochet.wake && document.getElementById('crochet').classList.contains('active') && !document.hidden;
+  try{
+    if(on && !crLock && navigator.wakeLock){
+      crLock = await navigator.wakeLock.request('screen');
+      crLock.addEventListener('release', ()=>{ crLock = null; });
+    } else if(!on && crLock){
+      await crLock.release(); crLock = null;
+    }
+  }catch(e){ crLock = null; }
+}
+document.getElementById('crWakeToggle').addEventListener('click', ()=>{
+  crochet.wake = !crochet.wake; crSave(); crRender(); crWakeSync();
+});
+document.addEventListener('visibilitychange', crWakeSync);
+crRender();
+
 /* ============ 首頁 ============ */
 function goTab(tab){
-  document.querySelector('.bt-item[data-tab="'+tab+'"]').click();
+  lastTodoTab = tab==='shopping' ? 'shopping' : lastTodoTab;
+  showTab(tab);
 }
 document.getElementById('homeTodoCard').addEventListener('click', ()=>goTab('todo'));
 document.getElementById('homeMoneyCard').addEventListener('click', ()=>goTab('money'));
