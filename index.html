@@ -248,6 +248,21 @@ textarea.field{ min-height:56px; resize:vertical; }
 .cr-tools{ margin-top:6px; }
 .cr-tool-row{ display:flex; justify-content:space-between; align-items:center; padding:10px 2px; font-size:14px; }
 .cr-reset{ width:100%; margin-top:6px; padding:11px; border-radius:12px; border:1.5px solid var(--red); background:transparent; color:var(--red); font-size:14px; font-weight:600; cursor:pointer; font-family:inherit; }
+.dine-card{ cursor:default; }
+.dine-head{ display:flex; justify-content:space-between; align-items:center; font-weight:700; font-size:14px; margin-bottom:8px; }
+.dine-head .mono{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--muted); }
+.dine-chips{ display:flex; flex-wrap:wrap; gap:6px; }
+.dine-chip{ padding:3px 10px; border-radius:12px; background:var(--rustSoft); color:var(--rust); font-size:12.5px; font-weight:600; }
+.dine-none{ font-size:13px; color:var(--muted); }
+.dine-row{ display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid var(--cardBorder); }
+.dine-row:last-child{ border-bottom:none; }
+.dine-date{ width:auto; white-space:nowrap; flex-shrink:0; font-family:'IBM Plex Mono',monospace; font-size:12.5px; color:var(--muted); }
+.dine-main{ flex:1; min-width:0; }
+.dine-name{ font-weight:700; font-size:14.5px; word-break:break-all; }
+.dine-sub{ font-size:12px; color:var(--muted); margin-top:1px; }
+.dine-count{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:14px; white-space:nowrap; }
+.dine-hint{ font-size:12.5px; color:var(--rust); margin-top:8px; min-height:18px; font-weight:600; }
+.dine-tag{ display:inline-block; margin-left:6px; padding:0 7px; border-radius:10px; background:var(--rustSoft); color:var(--rust); font-size:11px; font-weight:700; }
 .month-nav{ display:flex; align-items:center; gap:8px; }
 .month-nav-btn{ border:none; background:var(--rustSoft); color:var(--rust); width:26px; height:26px; border-radius:8px; font-size:13px; cursor:pointer; }
 .month-nav-btn:disabled{ opacity:0.35; }
@@ -570,6 +585,11 @@ html[data-theme="sticker"] .cr-minus{ background:#fff; border:3px solid var(--in
 html[data-theme="sticker"] .cr-plus{ background:#F2A497; color:var(--ink); border:3px solid var(--ink); box-shadow:4px 4px 0 var(--ink); }
 html[data-theme="sticker"] .cr-plus:active,html[data-theme="sticker"] .cr-minus:active{ transform:translate(2px,2px); box-shadow:1px 1px 0 var(--ink); }
 html[data-theme="sticker"] .cr-reset{ border:2px solid var(--ink); color:var(--rust); background:#fff; border-radius:14px; }
+html[data-theme="sticker"] .dine-row{ border-bottom:2px dotted #D9D2CB; }
+html[data-theme="sticker"] .dine-row:last-child{ border-bottom:none; }
+html[data-theme="sticker"] .dine-chip{ background:#F6D27A; color:var(--ink); border:2px solid var(--ink); }
+html[data-theme="sticker"] .dine-tag{ background:#F2A497; color:var(--ink); border:2px solid var(--ink); }
+html[data-theme="sticker"] .dine-hint{ color:var(--ink); }
 html[data-theme="sticker"] .toggle-switch{ width:52px; height:30px; border:2.5px solid var(--ink); background:#fff; box-shadow:2px 2px 0 var(--ink); box-sizing:border-box; }
 html[data-theme="sticker"] .toggle-switch.on{ background:#B9DAA5; }
 html[data-theme="sticker"] .toggle-switch .knob{ width:20px; height:20px; top:2px; left:2px; background:#F6D27A; border:2px solid var(--ink); box-sizing:border-box; }
@@ -673,7 +693,7 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
   <div class="header-row">
     <div class="logo" style="color:var(--rust);"><svg class="i" style="width:22px;height:22px;" aria-hidden="true"><use href="#i-book"/></svg></div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.11</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.12</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -731,6 +751,7 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
 
   <!-- 料理紀錄 -->
   <section class="tabpanel" id="recipes">
+    <div class="seg"><button class="seg-btn active" data-go="recipes" type="button">自己煮</button><button class="seg-btn" data-go="dining" type="button">外食</button></div>
     <button class="add-big-btn" id="openFormBtn">＋ 新增料理紀錄</button>
 
     <div class="modal-overlay" id="formModal">
@@ -775,6 +796,40 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
     </div>
 
     <div class="list" id="recipeList"></div>
+  </section>
+
+  <!-- 外食紀錄 -->
+  <section class="tabpanel" id="dining">
+    <div class="seg"><button class="seg-btn" data-go="recipes" type="button">自己煮</button><button class="seg-btn active" data-go="dining" type="button">外食</button></div>
+    <button class="add-big-btn" id="openDineBtn" type="button">＋ 新增用餐紀錄</button>
+
+    <div class="modal-overlay" id="dineModal">
+    <div class="form-card">
+      <div class="form-head">
+        <span class="form-title" id="dineTitleText">新增用餐紀錄</span>
+        <button class="icon-btn" id="closeDineBtn" type="button">✕</button>
+      </div>
+      <label class="field-label">日期</label>
+      <input class="field" type="date" id="d-date">
+      <label class="field-label">餐廳名稱</label>
+      <input class="field" id="d-name" list="dineNames" autocomplete="off" placeholder="例如：鼎泰豐">
+      <datalist id="dineNames"></datalist>
+      <div class="dine-hint" id="dineHint"></div>
+      <label class="field-label">備註（選填）</label>
+      <input class="field" id="d-note" placeholder="例如：點了什麼、跟誰去">
+      <button class="save-btn" id="saveDineBtn" type="button">儲存</button>
+    </div>
+    </div>
+
+    <div class="section-card dine-card" id="dineMonthCard"></div>
+
+    <div class="empty" id="dineEmpty" style="display:none;">
+      <div class="empty-icon"><span class="mono-badge big c3">外</span></div>
+      <p class="empty-text">還沒有用餐紀錄，點上面按鈕新增第一筆</p>
+    </div>
+    <div id="dineList"></div>
+
+    <div class="section-card dine-card" id="dineStats" style="display:none;"></div>
   </section>
 
   <!-- 採買清單 -->
@@ -1216,6 +1271,17 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.12',
+    date: '2026-11-01',
+    changes: [
+      '「料理」分頁新增「外食」：上方可切換「自己煮」與「外食」',
+      '外食可記錄日期、餐廳名稱與備註，並依月份列出；本月卡片會列出這個月已去過的餐廳',
+      '餐廳統計顯示每間去過幾次、上次是哪天，並標示本月去過的餐廳',
+      '新增紀錄時，輸入餐廳名稱會提示「這個月已去過」或「上次去是幾天前」，也可從以前輸入過的名稱選擇',
+      '資料備份檔會一併包含外食紀錄',
+    ],
+  },
   {
     version: 'v7.11',
     date: '2026-10-27',
@@ -1686,9 +1752,13 @@ const subtitles = {
   todo: '待辦事項與提醒',
   catcal: '記錄貓咪們的美容保養',
   crochet: '數針數、數行數',
+  dining: '記錄去過的餐廳',
 };
+const TAB_GROUP = { todo:'todo', shopping:'todo', recipes:'recipes', dining:'recipes' };
+const lastGroupTab = { todo:'todo', recipes:'recipes' };
 function showTab(tab){
-  const navTab = tab==='shopping' ? 'todo' : tab;
+  const navTab = TAB_GROUP[tab] || tab;
+  if(TAB_GROUP[tab]) lastGroupTab[navTab] = tab;
   document.querySelectorAll('.bt-item').forEach(b=>b.classList.toggle('active', b.dataset.tab===navTab));
   document.querySelectorAll('.tabpanel').forEach(p=>p.classList.toggle('active', p.id===tab));
   document.getElementById('subtitleText').textContent = subtitles[tab] || '';
@@ -1696,14 +1766,13 @@ function showTab(tab){
 }
 document.querySelectorAll('.bt-item').forEach(btn=>{
   btn.addEventListener('click', ()=>{
-    // 點「待辦」導覽時，回到上次停留的待辦／採買分頁
-    showTab(btn.dataset.tab==='todo' ? lastTodoTab : btn.dataset.tab);
+    // 點「待辦」「料理」導覽時，回到上次停留的分頁
+    showTab(lastGroupTab[btn.dataset.tab] || btn.dataset.tab);
   });
 });
-let lastTodoTab = 'todo';
 document.addEventListener('click', (e)=>{
   const sb = e.target.closest('.seg-btn');
-  if(sb){ lastTodoTab = sb.dataset.go; showTab(sb.dataset.go); }
+  if(sb) showTab(sb.dataset.go);
 });
 function setCount(kind,n){
   document.querySelectorAll('[data-for="'+kind+'"]').forEach(el=>{ el.textContent = n>0?n:''; el.style.display = n>0?'inline-flex':'none'; });
@@ -3316,6 +3385,128 @@ function renderCatHomeCard(){
   }
 }
 
+/* ============ 外食紀錄 ============ */
+const STORAGE_DINING = 'xiaorizi-dining';
+let dining = [];
+try{ dining = JSON.parse(localStorage.getItem(STORAGE_DINING) || '[]'); }catch(e){ dining = []; }
+function saveDining(){ try{ localStorage.setItem(STORAGE_DINING, JSON.stringify(dining)); }catch(e){} }
+function dEsc(t){ return String(t==null?'':t).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function dParse(str){ const a = str.split('-').map(Number); return new Date(a[0], a[1]-1, a[2]); }
+function dDaysAgo(str){ return Math.round((dParse(todayStr()) - dParse(str)) / 86400000); }
+function dAgoText(str){ const n = dDaysAgo(str); return n<=0 ? '今天' : n===1 ? '昨天' : n+' 天前'; }
+function dKey(n){ return String(n).trim().toLowerCase(); }
+function dMD(str){ return str.slice(5,7)+'/'+str.slice(8,10); }
+const DAYS = ['日','一','二','三','四','五','六'];
+let editingDineId = null;
+
+function renderDining(){
+  const ym = todayStr().slice(0,7);
+  const list = dining.slice().sort((a,b)=> b.date.localeCompare(a.date) || (b.id>a.id?1:-1));
+
+  // 本月卡片
+  const thisMonth = list.filter(r=>r.date.startsWith(ym));
+  const monthNames = [];
+  thisMonth.forEach(r=>{ if(!monthNames.some(n=>dKey(n)===dKey(r.name))) monthNames.push(r.name); });
+  document.getElementById('dineMonthCard').innerHTML =
+    '<div class="dine-head"><span>'+Number(ym.slice(5))+'月外食</span><span class="mono">'+thisMonth.length+' 次</span></div>'+
+    (monthNames.length
+      ? '<div class="dine-chips">'+monthNames.map(n=>'<span class="dine-chip">'+dEsc(n)+'</span>').join('')+'</div>'
+      : '<div class="dine-none">這個月還沒有外食紀錄</div>');
+
+  // 餐廳名稱建議
+  const freq = {};
+  list.forEach(r=>{ const k=dKey(r.name); if(!freq[k]) freq[k]={name:r.name,n:0}; freq[k].n++; });
+  const stats = Object.values(freq);
+  document.getElementById('dineNames').innerHTML = stats.sort((a,b)=>b.n-a.n).map(x=>'<option value="'+dEsc(x.name)+'"></option>').join('');
+
+  // 依月份紀錄
+  const empty = document.getElementById('dineEmpty');
+  const listEl = document.getElementById('dineList');
+  empty.style.display = list.length===0 ? 'flex' : 'none';
+  const groups = {};
+  list.forEach(r=>{ (groups[r.date.slice(0,7)] = groups[r.date.slice(0,7)] || []).push(r); });
+  listEl.innerHTML = Object.keys(groups).sort().reverse().map(m=>
+    '<div class="section-card dine-card"><div class="dine-head"><span>'+m.slice(0,4)+'年'+Number(m.slice(5))+'月</span><span class="mono">'+groups[m].length+' 次</span></div>'+
+    groups[m].map(r=>
+      '<div class="dine-row"><div class="dine-date">'+dMD(r.date)+' '+DAYS[dParse(r.date).getDay()]+'</div>'+
+      '<div class="dine-main"><div class="dine-name">'+dEsc(r.name)+'</div>'+(r.note?'<div class="dine-sub">'+dEsc(r.note)+'</div>':'')+'</div>'+
+      '<button class="icon-btn act edit-dine-btn" data-id="'+r.id+'" type="button" aria-label="編輯"><svg class="i" aria-hidden="true"><use href="#i-pencil"/></svg></button>'+
+      '<button class="icon-btn act del del-dine-btn" data-id="'+r.id+'" type="button" aria-label="刪除"><svg class="i" aria-hidden="true"><use href="#i-trash"/></svg></button></div>'
+    ).join('')+'</div>'
+  ).join('');
+
+  // 餐廳統計
+  const statsEl = document.getElementById('dineStats');
+  statsEl.style.display = list.length ? 'block' : 'none';
+  const rows = {};
+  list.forEach(r=>{
+    const k = dKey(r.name);
+    if(!rows[k]) rows[k] = { name:r.name, n:0, last:r.date };   // list 已由新到舊，第一筆即最近一次
+    rows[k].n++;
+  });
+  const arr = Object.values(rows).sort((a,b)=> b.n-a.n || b.last.localeCompare(a.last));
+  statsEl.innerHTML = '<div class="dine-head"><span>餐廳統計</span><span class="mono">共 '+arr.length+' 間</span></div>'+
+    arr.map(x=>
+      '<div class="dine-row"><div class="dine-main"><div class="dine-name">'+dEsc(x.name)+(x.last.startsWith(ym)?'<span class="dine-tag">本月去過</span>':'')+'</div>'+
+      '<div class="dine-sub">上次 '+dMD(x.last)+'・'+dAgoText(x.last)+'</div></div>'+
+      '<div class="dine-count">'+x.n+' 次</div></div>'
+    ).join('');
+}
+
+function updateDineHint(){
+  const name = document.getElementById('d-name').value.trim();
+  const date = document.getElementById('d-date').value;
+  const hint = document.getElementById('dineHint');
+  if(!name || !date){ hint.textContent = ''; return; }
+  const same = dining.filter(r=>dKey(r.name)===dKey(name) && r.id!==editingDineId);
+  if(same.length===0){ hint.textContent = '這間還沒去過，是新的餐廳'; return; }
+  const inMonth = same.filter(r=>r.date.slice(0,7)===date.slice(0,7)).sort((a,b)=>a.date.localeCompare(b.date));
+  if(inMonth.length){
+    hint.textContent = '這個月已去過：'+inMonth.map(r=>dMD(r.date)).join('、');
+  } else {
+    const last = same.map(r=>r.date).sort().pop();
+    hint.textContent = '上次去是 '+dMD(last)+'（'+dAgoText(last)+'），共去過 '+same.length+' 次';
+  }
+}
+function openDineForm(item){
+  editingDineId = item ? item.id : null;
+  document.getElementById('dineTitleText').textContent = item ? '編輯用餐紀錄' : '新增用餐紀錄';
+  document.getElementById('d-date').value = item ? item.date : todayStr();
+  document.getElementById('d-name').value = item ? item.name : '';
+  document.getElementById('d-note').value = item ? (item.note||'') : '';
+  updateDineHint();
+  document.getElementById('dineModal').classList.add('show');
+}
+function closeDineForm(){ document.getElementById('dineModal').classList.remove('show'); editingDineId = null; }
+document.getElementById('openDineBtn').addEventListener('click', ()=>openDineForm(null));
+document.getElementById('closeDineBtn').addEventListener('click', closeDineForm);
+document.getElementById('dineModal').addEventListener('click', (e)=>{ if(e.target.id==='dineModal') closeDineForm(); });
+document.getElementById('d-name').addEventListener('input', updateDineHint);
+document.getElementById('d-date').addEventListener('change', updateDineHint);
+document.getElementById('saveDineBtn').addEventListener('click', ()=>{
+  const date = document.getElementById('d-date').value;
+  const name = document.getElementById('d-name').value.trim();
+  const note = document.getElementById('d-note').value.trim();
+  if(!date){ showToast('請選擇日期'); return; }
+  if(!name){ showToast('請輸入餐廳名稱'); return; }
+  if(editingDineId){
+    const r = dining.find(x=>x.id===editingDineId);
+    if(r){ r.date = date; r.name = name; r.note = note; }
+  } else {
+    dining.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), date, name, note });
+  }
+  saveDining(); closeDineForm(); renderDining(); showToast('已儲存');
+});
+document.getElementById('dineList').addEventListener('click', (e)=>{
+  const ed = e.target.closest('.edit-dine-btn'), del = e.target.closest('.del-dine-btn');
+  if(ed){ const r = dining.find(x=>x.id===ed.dataset.id); if(r) openDineForm(r); }
+  else if(del){
+    const r = dining.find(x=>x.id===del.dataset.id);
+    if(r && confirm('要刪除「'+dMD(r.date)+' '+r.name+'」這筆紀錄嗎？')){ dining = dining.filter(x=>x.id!==r.id); saveDining(); renderDining(); }
+  }
+});
+renderDining();
+
 /* ============ 鉤織計數 ============ */
 const STORAGE_CROCHET = 'xiaorizi-crochet';
 let crochet = { stitch:0, row:0, wake:true };
@@ -3362,7 +3553,6 @@ crRender();
 
 /* ============ 首頁 ============ */
 function goTab(tab){
-  lastTodoTab = tab==='shopping' ? 'shopping' : lastTodoTab;
   showTab(tab);
 }
 document.getElementById('homeTodoCard').addEventListener('click', ()=>goTab('todo'));
@@ -3721,7 +3911,7 @@ function renderManageList(containerId, list, handlers){
 document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
   const backup = {
     exportedAt: new Date().toISOString(),
-    recipes, shopping, expenses, todos, categories, payments,
+    recipes, shopping, expenses, todos, categories, payments, dining,
   };
   const json = JSON.stringify(backup, null, 2);
   const fileName = '小日子備份_' + todayStr() + '.json';
@@ -3747,11 +3937,11 @@ document.getElementById('exportDataBtn').addEventListener('click', async ()=>{
 document.getElementById('clearLocalDataBtn').addEventListener('click', ()=>{
   const ok = confirm('這會清除手機本機上的所有資料（料理、記帳、採買、待辦），且無法復原！雲端試算表的資料不會受影響，事後可以用「從雲端還原資料」拿回來。確定要清除嗎？');
   if(!ok) return;
-  [STORAGE_RECIPES, STORAGE_SHOPPING, STORAGE_EXPENSES, STORAGE_CATEGORIES, STORAGE_PAYMENTS, STORAGE_TODOS].forEach(k=>localStorage.removeItem(k));
-  recipes = []; shopping = []; expenses = []; todos = [];
+  [STORAGE_RECIPES, STORAGE_SHOPPING, STORAGE_EXPENSES, STORAGE_CATEGORIES, STORAGE_PAYMENTS, STORAGE_TODOS, STORAGE_DINING].forEach(k=>localStorage.removeItem(k));
+  recipes = []; shopping = []; expenses = []; todos = []; dining = [];
   categories = ['飼料','醫療','用品']; payments = ['現金','信用卡'];
   saveCategories(); savePayments();
-  renderRecipes(); renderShopping(); renderCategoryChips(); renderExpenses(); renderTodos(); renderReminders(); renderHome();
+  renderRecipes(); renderShopping(); renderCategoryChips(); renderExpenses(); renderTodos(); renderReminders(); renderHome(); renderDining();
   settingsModalEl.classList.remove('show');
   showToast('已清除本機資料');
 });
