@@ -693,7 +693,7 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
   <div class="header-row">
     <div class="logo" style="color:var(--rust);"><svg class="i" style="width:22px;height:22px;" aria-hidden="true"><use href="#i-book"/></svg></div>
     <div style="flex:1;">
-      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.12</button></h1>
+      <h1>小日子 <button class="ver-badge" id="verBadgeBtn">v7.13</button></h1>
       <p class="subtitle" id="subtitleText">今天也要好好過生活</p>
       <p class="clock" id="clockText"></p>
     </div>
@@ -726,10 +726,10 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
 
     <div class="section-card" id="homeRecipeCard">
       <div class="sc-head">
-        <span class="sc-title"><span class="mono-badge c3">料</span>料理紀錄</span>
+        <span class="sc-title"><span class="mono-badge c3">外</span>最近外食</span>
         <span class="sc-link">查看全部 ›</span>
       </div>
-      <div id="homeRecipeBody"></div>
+      <div id="homeDineBody"></div>
     </div>
 
     <div class="section-card" id="homeShopCard">
@@ -742,7 +742,7 @@ html[data-theme="sticker"] .bt-badge{ background:#F2A497; color:var(--ink); bord
 
     <div class="section-card" id="homeCatCard">
       <div class="sc-head">
-        <span class="sc-title"><span class="mono-badge c5">喵</span>喵喵日曆</span>
+        <span class="sc-title"><span class="mono-badge c5">喵</span>喵喵近況</span>
         <span class="sc-link">查看全部 ›</span>
       </div>
       <div id="homeCatBody"></div>
@@ -1271,6 +1271,15 @@ function showToast(msg){
 
 /* ============ 版本紀錄 ============ */
 const CHANGELOG = [
+  {
+    version: 'v7.13',
+    date: '2026-11-04',
+    changes: [
+      '首頁的「料理紀錄」卡片換成「最近外食」：顯示本月已去幾次與最近三間餐廳，可直接新增用餐紀錄',
+      '首頁的「喵喵日曆」卡片改成「喵喵近況」：顯示最近哪隻貓咪做了什麼事項，同一天一起做的貓咪會合併成一列',
+      '設定裡的首頁板塊名稱同步更新，原本的排列順序不變',
+    ],
+  },
   {
     version: 'v7.12',
     date: '2026-11-01',
@@ -3363,26 +3372,26 @@ document.getElementById('addGroomTypeBtn').addEventListener('click', ()=>{
 /* ---- 首頁卡片 ---- */
 function renderCatHomeCard(){
   const body = document.getElementById('homeCatBody');
-  const today = todayStr();
-  const dueItems = [];
-  groomSchedules.forEach(s=>{
-    const cat = cats.find(c=>c.id===s.catId);
-    if(!cat) return;
-    const nextDue = computeNextDue(s.catId, s.type, s.intervalDays);
-    if(!nextDue || nextDue<=today) dueItems.push({ cat, type:s.type, never: !nextDue });
-  });
-  if(groomSchedules.length===0){
-    body.innerHTML = '<p class="home-summary" style="margin:0;">還沒有設定提醒排程</p>';
-  } else if(dueItems.length===0){
-    body.innerHTML = '<p class="home-summary" style="margin:0;">目前沒有逾期的美容保養提醒</p>';
-  } else {
-    body.innerHTML = dueItems.slice(0,3).map(it=>`
-      <div class="todo-mini-row">
-        ${catAvatarHtml(it.cat, 18)}
-        <span class="todo-mini-name">${it.cat.name} 該「${it.type}」了</span>
-      </div>
-    `).join('');
+  const sorted = groomLogs.slice().sort((x,y)=> y.date.localeCompare(x.date));
+  if(sorted.length===0){
+    body.innerHTML = '<p class="home-summary" style="margin:0;">還沒有照顧紀錄</p>';
+    return;
   }
+  // 同一天、同一事項合併成一列（多隻貓一起做的會顯示在一起）
+  const groups = [];
+  sorted.forEach(l=>{
+    let g = groups.find(x=>x.date===l.date && x.type===l.type);
+    if(!g){ g = { date:l.date, type:l.type, catIds:[] }; groups.push(g); }
+    if(!g.catIds.includes(l.catId)) g.catIds.push(l.catId);
+  });
+  body.innerHTML = groups.slice(0,3).map(g=>{
+    const gc = g.catIds.map(id=>cats.find(c=>c.id===id)).filter(Boolean);
+    return `<div class="todo-mini-row">
+      <span style="display:inline-flex; gap:2px;">${gc.slice(0,3).map(c=>catAvatarHtml(c,20)).join('')}</span>
+      <span class="todo-mini-name">${gc.map(c=>dEsc(c.name)).join('、')}　${dEsc(g.type)}</span>
+      <span class="todo-mini-due none">${dAgoText(g.date)}</span>
+    </div>`;
+  }).join('');
 }
 
 /* ============ 外食紀錄 ============ */
@@ -3495,14 +3504,14 @@ document.getElementById('saveDineBtn').addEventListener('click', ()=>{
   } else {
     dining.push({ id: Date.now().toString(36)+Math.random().toString(36).slice(2,6), date, name, note });
   }
-  saveDining(); closeDineForm(); renderDining(); showToast('已儲存');
+  saveDining(); closeDineForm(); renderDining(); renderHome(); showToast('已儲存');
 });
 document.getElementById('dineList').addEventListener('click', (e)=>{
   const ed = e.target.closest('.edit-dine-btn'), del = e.target.closest('.del-dine-btn');
   if(ed){ const r = dining.find(x=>x.id===ed.dataset.id); if(r) openDineForm(r); }
   else if(del){
     const r = dining.find(x=>x.id===del.dataset.id);
-    if(r && confirm('要刪除「'+dMD(r.date)+' '+r.name+'」這筆紀錄嗎？')){ dining = dining.filter(x=>x.id!==r.id); saveDining(); renderDining(); }
+    if(r && confirm('要刪除「'+dMD(r.date)+' '+r.name+'」這筆紀錄嗎？')){ dining = dining.filter(x=>x.id!==r.id); saveDining(); renderDining(); renderHome(); }
   }
 });
 renderDining();
@@ -3559,7 +3568,7 @@ document.getElementById('homeTodoCard').addEventListener('click', ()=>goTab('tod
 document.getElementById('homeMoneyCard').addEventListener('click', ()=>goTab('money'));
 document.getElementById('homeRecipeCard').addEventListener('click', (e)=>{
   if(e.target.closest('.qa-btn')) return; // 快速按鈕另外處理，不要跟卡片本身的跳轉衝突
-  goTab('recipes');
+  goTab('dining');
 });
 document.getElementById('homeShopCard').addEventListener('click', ()=>goTab('shopping'));
 document.getElementById('homeCatCard').addEventListener('click', ()=>goTab('catcal'));
@@ -3620,35 +3629,32 @@ function renderHome(){
     `;
   }
 
-  // 料理：最近一筆
-  const recipeBody = document.getElementById('homeRecipeBody');
-  if(recipes.length===0){
-    recipeBody.innerHTML = `
-      <p class="home-summary" style="margin:0 0 4px;">還沒有任何料理紀錄</p>
-      <div class="qa-btn" id="homeAddRecipeBtn">＋ 新增第一道料理</div>
+  // 外食：最近去過的餐廳
+  const dineBody = document.getElementById('homeDineBody');
+  const dineSorted = dining.slice().sort((x,y)=> y.date.localeCompare(x.date) || (y.id>x.id?1:-1));
+  if(dineSorted.length===0){
+    dineBody.innerHTML = `
+      <p class="home-summary" style="margin:0 0 4px;">還沒有用餐紀錄</p>
+      <div class="qa-btn" id="homeAddDineBtn">＋ 新增第一筆用餐紀錄</div>
     `;
   } else {
-    const r = recipes[0];
-    const metaParts = [r.tool];
-    if(r.mode) metaParts.push(r.mode);
-    if(r.time) metaParts.push(r.time);
-    recipeBody.innerHTML = `
-      <div class="recipe-preview">
-        <div class="recipe-thumb" style="color:var(--rust);"><svg class="i" style="width:22px;height:22px;" aria-hidden="true"><use href="#i-utensils"/></svg></div>
-        <div class="recipe-info">
-          <div class="name">最近新增：${r.name}</div>
-          <div class="meta">${metaParts.join(' · ')}</div>
-        </div>
-      </div>
-      <div class="qa-btn" id="homeAddRecipeBtn">＋ 新增今天煮的菜</div>
+    const monthCount = dineSorted.filter(r=>r.date.startsWith(ym)).length;
+    dineBody.innerHTML = `
+      <p class="home-summary" style="margin:0 0 6px;">${monthNum}月已外食 <b>${monthCount}</b> 次</p>
+      ${dineSorted.slice(0,3).map(r=>`<div class="todo-mini-row">
+        <span class="todo-dot normal"></span>
+        <span class="todo-mini-name">${dEsc(r.name)}</span>
+        <span class="todo-mini-due none">${dMD(r.date)}・${dAgoText(r.date)}</span>
+      </div>`).join('')}
+      <div class="qa-btn" id="homeAddDineBtn">＋ 新增用餐紀錄</div>
     `;
   }
-  const addRecipeBtn = document.getElementById('homeAddRecipeBtn');
-  if(addRecipeBtn){
-    addRecipeBtn.addEventListener('click', (e)=>{
+  const addDineBtn = document.getElementById('homeAddDineBtn');
+  if(addDineBtn){
+    addDineBtn.addEventListener('click', (e)=>{
       e.stopPropagation();
-      goTab('recipes');
-      setTimeout(()=> document.getElementById('openFormBtn').click(), 250);
+      goTab('dining');
+      setTimeout(()=> document.getElementById('openDineBtn').click(), 250);
     });
   }
 
@@ -3674,9 +3680,9 @@ function renderHome(){
 const homeOrderMeta = {
   todo:   { id:'homeTodoCard',   label:'待辦事項' },
   money:  { id:'homeMoneyCard',  label:'本月支出' },
-  recipe: { id:'homeRecipeCard', label:'料理紀錄' },
+  recipe: { id:'homeRecipeCard', label:'最近外食' },
   shop:   { id:'homeShopCard',   label:'採買清單' },
-  cat:    { id:'homeCatCard',    label:'喵喵日曆' },
+  cat:    { id:'homeCatCard',    label:'喵喵近況' },
 };
 function applyHomeOrder(){
   const parent = document.getElementById('home');
